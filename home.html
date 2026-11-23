@@ -12,84 +12,88 @@
       padding: 0;
       background-color: #f5f7fa;
       color: #333;
-      padding-bottom: 60px; /* 防止内容被底部工具栏遮挡 */
+      padding-bottom: calc(clamp(50px, 13.5vw, 58px) + 12px); /* 防止内容被底部工具栏遮挡 */
     }
 
-    .header {
-      position: relative;
-      background: linear-gradient(135deg, #e6f2ff, #ffffff);
+    .page {
+      max-width: 414px;
+      margin: 0 auto;
+    }
+
+    /* 顶部 Banner 卡片 */
+    .banner-card {
+      background-color: #fff;
       border-radius: 16px;
-      padding: 16px;
+      margin: clamp(8px, 2.6vw, 16px) clamp(8px, 2.6vw, 16px) clamp(8px, 2.6vw, 16px);
+      padding: clamp(12px, 3.4vw, 16px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      overflow: hidden;
     }
 
-    .header img {
+    .banner-card img {
+      display: block;
       width: 100%;
       height: auto;
-      border-radius: 8px;
+      border-radius: 12px;
     }
 
+    /* 通用卡片 */
     .section {
-      background-color: white;
+      background-color: #fff;
       border-radius: 16px;
-      margin: 16px;
-      padding: 16px;
+      margin: 0 clamp(8px, 2.6vw, 16px) clamp(8px, 2.6vw, 16px);
+      padding: clamp(12px, 3.4vw, 16px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .section-title {
-      font-size: 13px;
+      font-size: clamp(12px, 3.4vw, 14px);
       color: #666;
-      margin-bottom: 16px;
+      margin-bottom: clamp(10px, 3vw, 16px);
     }
 
+    /* 应用网格 */
     .app-grid {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      justify-content: flex-start;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      row-gap: clamp(10px, 3vw, 16px);
     }
 
     .app-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 80px;
-  text-align: center;
-  text-decoration: none; /* 去掉下划线 */
-  color: inherit;        /* 继承父级颜色 */
-}
-
-    .app-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px; /* 原为 16px，现在适配 40px */
-  background-color: #5a9cf5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 6px;
-  overflow: hidden;
-}
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      text-decoration: none;
+      color: inherit;
+    }
 
     .app-icon img {
-      width: 100%;
-      height: 100%;
+      display: block;
+      width: clamp(36px, 10.5vw, 46px);
+      height: clamp(36px, 10.5vw, 46px);
       object-fit: contain;
     }
 
+    /* 手机版图标内缩：邻居实测内容占比 R=0.833（140/168），每边内缩 8.33% 框宽；
+       box-sizing:border-box 使外框尺寸不变，仅视觉缩小，不影响布局与文字 */
+    .icon-inset {
+      box-sizing: border-box;
+      padding: calc(0.0833 * clamp(36px, 10.5vw, 46px));
+    }
+
     .app-name {
-      font-size: 13px;
+      font-size: clamp(11px, 3vw, 13px);
       color: #333;
       line-height: 1.2;
-      margin: 0;
+      margin-top: 6px;
+      white-space: nowrap;
     }
 
     .app-tag {
-      font-size: 12px;
+      font-size: 10px;
       color: #909cab;
-      margin-top: 4px;
+      margin-top: 2px;
+      line-height: 1;
     }
 
     /* 底部工具栏 */
@@ -98,13 +102,15 @@
       bottom: 0;
       left: 0;
       right: 0;
+      max-width: 414px;
+      margin: 0 auto;
       display: flex;
       justify-content: space-around;
       align-items: center;
-      height: 48px;
-      background-color: white;
+      height: clamp(50px, 13.5vw, 58px);
+      background-color: #fff;
       box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-      padding: 0 16px;
+      padding: 0 8px;
       box-sizing: border-box;
     }
 
@@ -112,7 +118,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      font-size: 11px;
+      font-size: 10px;
       color: #888;
       text-decoration: none;
     }
@@ -121,100 +127,129 @@
       color: #5a9cf5;
     }
 
-    .footer-icon {
-      width: 20px;
-      height: 20px;
-      margin-bottom: 4px;
+    .footer-icon img {
+      display: block;
+      width: clamp(22px, 6vw, 26px);
+      height: clamp(22px, 6vw, 26px);
+      object-fit: contain;
+      margin-bottom: 3px;
     }
 
-    .footer-icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
+    /* 「我」tab 图标单独缩小一号：每边内缩 5% 框宽，外框不变不影响布局 */
+    .footer-icon-sm {
+      box-sizing: border-box;
+      padding: calc(0.05 * clamp(22px, 6vw, 26px));
     }
   </style>
 </head>
 <body>
-  <!-- 头部广告区域 -->
-  <div class="header">
-    <img src="d_ad.png" alt="" />
-  </div>
+  <div class="page">
+    <!-- a. Banner -->
+    <div class="banner-card">
+      <img src="d_ad.png" alt="" />
+    </div>
 
-  <!-- 效率工具 -->
-  <div class="section">
-    <div class="section-title">效率工具</div>
-    <div class="app-grid">
-      <div class="app-item">
-        <div class="app-icon"><img src="d_1.png" /></div>
-        <div class="app-name">日程</div>
+    <!-- b. 效率工具 -->
+    <div class="section">
+      <div class="section-title">效率工具</div>
+      <div class="app-grid">
+        <div class="app-item">
+          <div class="app-icon"><img src="icons/icon-richeng.png" alt="" /></div>
+          <div class="app-name">日程</div>
+        </div>
+        <div class="app-item">
+          <div class="app-icon"><img src="icons/icon-huiyi.png" alt="" /></div>
+          <div class="app-name">会议</div>
+        </div>
+        <div class="app-item">
+          <div class="app-icon"><img src="icons/icon-weipan.png" alt="" /></div>
+          <div class="app-name">微盘</div>
+        </div>
+        <div class="app-item">
+          <div class="app-icon"><img src="icons/icon-wendang-grid.png" alt="" /></div>
+          <div class="app-name">收集表</div>
+        </div>
       </div>
-      <div class="app-item">
-        <div class="app-icon"><img src="d_2.png" /></div>
-        <div class="app-name">会议</div>
+    </div>
+
+    <!-- d. 警院微应用 -->
+    <div class="section">
+      <div class="section-title">警院微应用</div>
+      <div class="app-grid">
+        <a href="waiting.html?target=workshop.html" class="app-item">
+          <div class="app-icon"><img src="icons/icon-zhangshangxiaoyuan.png" alt="" /></div>
+          <div class="app-name">掌上校园</div>
+        </a>
       </div>
-      <div class="app-item">
-        <div class="app-icon"><img src="d_3.png" /></div>
-        <div class="app-name">微盘</div>
+    </div>
+
+    <!-- c. 智能办公AI+ -->
+    <div class="section">
+      <div class="section-title">智能办公AI+</div>
+      <div class="app-grid">
+        <div class="app-item">
+          <div class="app-icon"><img src="icons/icon-zhinengwendang.png" alt="" /></div>
+          <div class="app-name">智能文档</div>
+        </div>
+        <div class="app-item">
+          <div class="app-icon"><img src="icons/icon-zhinengbiaoge.png" alt="" /></div>
+          <div class="app-name">智能表格</div>
+        </div>
+        <div class="app-item">
+          <div class="app-icon"><img src="icons/icon-zhinengzongjie.png" alt="" /></div>
+          <div class="app-name">智能总结</div>
+        </div>
+        <div class="app-item">
+          <div class="app-icon"><img src="icons/icon-zhinengjiqiren.png" alt="" /></div>
+          <div class="app-name">智能机器人</div>
+          <div class="app-tag">AI+</div>
+        </div>
+        <div class="app-item">
+          <div class="app-icon"><img src="icons/icon-jilumianliao.png" alt="" /></div>
+          <div class="app-name">记录面聊</div>
+        </div>
+        <div class="app-item">
+          <div class="app-icon"><img src="icons/icon-fuwuzongjie.png" alt="" /></div>
+          <div class="app-name">服务总结</div>
+        </div>
       </div>
-      <div class="app-item">
-        <div class="app-icon"><img src="d_4.png" /></div>
-        <div class="app-name">收集表</div>
+    </div>
+
+    <!-- 无标题栏：企业小助手 / 手机版 -->
+    <div class="section">
+      <div class="app-grid">
+        <div class="app-item">
+          <div class="app-icon"><img src="icons/icon-qiyezhanghao.png" alt="" /></div>
+          <div class="app-name">企业小助手</div>
+        </div>
+        <div class="app-item">
+          <div class="app-icon"><img src="icons/icon-shoujiban.png" alt="" class="icon-inset" /></div>
+          <div class="app-name">手机版</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 警院微应用 -->
-<div class="section">
-  <div class="section-title">警院微应用</div>
-  <div class="app-grid">
-    <a href="waiting.html?target=workshop.html" class="app-item">
-      <div class="app-icon">
-        <img src="d_5.png" alt="" />
-      </div>
-      <div class="app-name">掌上校园</div>
-    </a>
-  </div>
-</div>
-
-  <!-- 其他应用 -->
-  <div class="section">
-    <div class="app-grid">
-      <div class="app-item">
-        <div class="app-icon"><img src="d_6.png" /></div>
-        <div class="app-name">智能机器人</div>
-        <div class="app-tag">AI+</div>
-      </div>
-      <div class="app-item">
-        <div class="app-icon"><img src="d_7.png" /></div>
-        <div class="app-name">企业小助手</div>
-      </div>
-      <div class="app-item">
-        <div class="app-icon"><img src="d_8.png" /></div>
-        <div class="app-name">手机版</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 底部工具栏 -->
+  <!-- e. 底部工具栏 -->
   <div class="footer">
     <a href="#" class="footer-item">
-      <div class="footer-icon"><img src="d_9.png" alt="" /></div>
+      <div class="footer-icon"><img src="icons/icon-tab-xiaoxi.png" alt="" /></div>
       <span>消息</span>
     </a>
     <a href="#" class="footer-item">
-      <div class="footer-icon"><img src="d_10.png" alt="" /></div>
+      <div class="footer-icon"><img src="icons/icon-tab-wendang.png" alt="" /></div>
       <span>文档</span>
     </a>
     <a href="#" class="footer-item">
-      <div class="footer-icon"><img src="d_11.png" alt="" /></div>
+      <div class="footer-icon"><img src="icons/icon-tab-tongxunlu.png" alt="" /></div>
       <span>通讯录</span>
     </a>
     <a href="#" class="footer-item active">
-      <div class="footer-icon"><img src="d_12.png" alt="" /></div>
+      <div class="footer-icon"><img src="icons/icon-tab-gongzuotai.png" alt="" /></div>
       <span>工作台</span>
     </a>
     <a href="#" class="footer-item">
-      <div class="footer-icon"><img src="d_13.png" alt="" /></div>
+      <div class="footer-icon"><img src="icons/icon-tab-wo.png" alt="" class="footer-icon-sm" /></div>
       <span>我</span>
     </a>
   </div>
