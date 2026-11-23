@@ -20,12 +20,11 @@
       margin: 0 auto;
     }
 
-    /* 顶部 Banner 卡片 */
+    /* 顶部 Banner 卡片（贴边显示，最大化宽度） */
     .banner-card {
       background-color: #fff;
-      border-radius: 16px;
-      margin: clamp(8px, 2.6vw, 16px) clamp(8px, 2.6vw, 16px) clamp(8px, 2.6vw, 16px);
-      padding: clamp(12px, 3.4vw, 16px);
+      margin: 0 0 clamp(8px, 2.6vw, 16px);
+      padding: 0;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
@@ -33,7 +32,7 @@
       display: block;
       width: 100%;
       height: auto;
-      border-radius: 12px;
+      border-radius: 0;
     }
 
     /* 通用卡片 */
@@ -41,7 +40,7 @@
       background-color: #fff;
       border-radius: 16px;
       margin: 0 clamp(8px, 2.6vw, 16px) clamp(8px, 2.6vw, 16px);
-      padding: clamp(12px, 3.4vw, 16px);
+      padding: clamp(14px, 4.1vw, 19px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
@@ -55,7 +54,7 @@
     .app-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      row-gap: clamp(10px, 3vw, 16px);
+      row-gap: clamp(12px, 3.6vw, 19px);
     }
 
     .app-item {
@@ -69,8 +68,8 @@
 
     .app-icon img {
       display: block;
-      width: clamp(36px, 10.5vw, 46px);
-      height: clamp(36px, 10.5vw, 46px);
+      width: clamp(43px, 12.6vw, 55px);
+      height: clamp(43px, 12.6vw, 55px);
       object-fit: contain;
     }
 
@@ -78,7 +77,7 @@
        box-sizing:border-box 使外框尺寸不变，仅视觉缩小，不影响布局与文字 */
     .icon-inset {
       box-sizing: border-box;
-      padding: calc(0.0833 * clamp(36px, 10.5vw, 46px));
+      padding: calc(0.0833 * clamp(43px, 12.6vw, 55px));
     }
 
     .app-name {
@@ -140,9 +139,48 @@
       box-sizing: border-box;
       padding: calc(0.05 * clamp(22px, 6vw, 26px));
     }
+
+    /* 加载遮罩（风格照抄 waiting.html：load.gif + 「加载中...」14px #666 居中） */
+    #loading-mask {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.4s ease;
+    }
+
+    #loading-mask img {
+      display: block;
+      max-width: 60%;
+      max-height: 60%;
+    }
+
+    #loading-mask p {
+      font-size: 14px;
+      color: #666;
+      margin: 0;
+      line-height: 1;
+    }
+
+    #loading-mask.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
+  <div id="loading-mask">
+    <img src="load.gif" alt="加载中">
+    <p id="loading-text">加载中...</p>
+  </div>
   <div class="page">
     <!-- a. Banner -->
     <div class="banner-card">
@@ -253,5 +291,28 @@
       <span>我</span>
     </a>
   </div>
+  <script>
+    (function () {
+      var mask = document.getElementById('loading-mask');
+      var imgs = Array.prototype.slice.call(document.images);
+      var loads = imgs.map(function (img) {
+        if (img.complete) return Promise.resolve();
+        return new Promise(function (res) {
+          img.addEventListener('load', res, { once: true });
+          img.addEventListener('error', res, { once: true }); /* 失败也计入完成 */
+        });
+      });
+      var timeout = new Promise(function (res) { setTimeout(res, 3000); }); /* 最长 3 秒强制放行 */
+      var hidden = false;
+      function hide() {
+        if (hidden) return;
+        hidden = true;
+        mask.classList.add('hide');
+        setTimeout(function () { if (mask.parentNode) mask.parentNode.removeChild(mask); }, 450);
+      }
+      Promise.race([Promise.all(loads), timeout]).then(hide);
+      setTimeout(hide, 3500); /* 兜底：确保遮罩必然消失 */
+    })();
+  </script>
 </body>
 </html>
