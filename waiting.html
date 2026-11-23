@@ -41,7 +41,7 @@
     let target = urlParams.get('target');
 
     // 安全白名单（防止开放重定向）
-    const allowed = ['home.html', 'index.html', 'workshop.html', 'list.html'];
+    const allowed = ['home.html', 'detail.html', 'workshop.html', 'list.html'];
     if (!target || !allowed.includes(target)) {
       target = 'home.html'; // 默认 fallback
     }
@@ -53,7 +53,7 @@
       delay = Math.floor(Math.random() * 1000) + 4000;  
     } else if (target === 'list.html') {
       delay = Math.floor(Math.random() * 1000) + 3000;  
-    } else if (target === 'index.html') {
+    } else if (target === 'detail.html') {
       document.getElementById('content').style.display = 'none';
       delay = 10;                                      
     } else {
