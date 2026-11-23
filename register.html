@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>注册账号</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container { width: 100%; max-width: 400px; }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px 32px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo { text-align: center; margin-bottom: 8px; }
+        .logo svg { width: 56px; height: 56px; color: #667eea; }
+
+        .page-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 28px;
+        }
+
+        .form-group { margin-bottom: 18px; }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #ddd;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+            outline: none;
+            background: #fafafa;
+        }
+
+        .form-group input:focus {
+            border-color: #667eea;
+            background: #fff;
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: opacity 0.2s;
+        }
+
+        .register-btn:hover { opacity: 0.9; }
+        .register-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .links {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .pending-page {
+            display: none;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .pending-page h2 {
+            color: #f39c12;
+            margin-bottom: 16px;
+        }
+
+        .pending-page p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-60px);
+            padding: 12px 24px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 9999;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .toast.error { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card" id="registerForm">
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+            </div>
+            <h1 class="page-title">请假系统 · 注册</h1>
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" placeholder="请输入用户名" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" placeholder="请输入密码（至少6位）" autocomplete="new-password">
+            </div>
+            <div class="form-group">
+                <label for="inviteCode">邀请码</label>
+                <input type="text" id="inviteCode" placeholder="请输入邀请码" autocomplete="off">
+            </div>
+            <button class="register-btn" id="registerBtn" onclick="handleRegister()">注册</button>
+            <div class="links">
+                已有账号？<a href="login.html">去登录</a>
+            </div>
+        </div>
+
+        <div class="card pending-page" id="pendingPage">
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#f39c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+            </div>
+            <h2>注册成功，等待审核</h2>
+            <p>
+                您的账号已提交，需要管理员审核后才能登录。<br>
+                请耐心等待，审核通过后即可正常使用。
+            </p>
+            <div class="links" style="margin-top: 24px;">
+                <a href="login.html">返回登录</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        const SUPABASE_URL = 'https://hqoeptonghttbqggpcwx.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_ShrC-Qjx3-V_cfIcrYgqWw_HEp4pE_-';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+                function showToast(message, type = 'error') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        window.handleRegister = async function() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const inviteCode = document.getElementById('inviteCode').value.trim();
+            const btn = document.getElementById('registerBtn');
+
+            if (!username || !password || !inviteCode) {
+                showToast('请填写所有字段');
+                return;
+            }
+
+            if (password.length < 6) {
+                showToast('密码至少6位');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '注册中...';
+
+            try {
+                // 调用数据库函数完成注册（查重、验证邀请码、写入都在数据库内进行）
+                const { data: regData, error: regError } = await supabase.rpc('register_user', {
+                    p_username: username,
+                    p_password: password,
+                    p_invite_code: inviteCode
+                });
+                const regRes = (regData && typeof regData === 'object') ? regData : null;
+
+                if (regError || !regRes || regRes.error) {
+                    showToast((regRes && regRes.error) || '注册失败，请稍后再试');
+                    btn.disabled = false;
+                    btn.textContent = '注册';
+                    return;
+                }
+
+                // 清除可能存在的 Supabase Auth 会话
+                await supabase.auth.signOut().catch(() => {});
+
+                document.getElementById('registerForm').style.display = 'none';
+                document.getElementById('pendingPage').style.display = 'block';
+            } catch (error) {
+                console.error(error);
+                showToast('注册失败：' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '注册';
+            }
+        };
+    </script>
+</body>
+</html>

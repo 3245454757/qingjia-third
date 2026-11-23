@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>管理后台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-left .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-name {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 52px;
+            z-index: 99;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: #888;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 16px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .user-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .user-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .status-pending { background: #fef3e2; color: #f39c12; }
+        .status-approved { background: #e8f8ef; color: #27ae60; }
+        .status-rejected { background: #fdeaea; color: #e74c3c; }
+
+        .invite-tag {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        .user-meta {
+            font-size: 12px;
+            color: #aaa;
+            display: flex;
+            gap: 16px;
+            margin-bottom: 10px;
+        }
+
+        .note-section { margin-top: 8px; }
+        .note-section label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .note-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .note-input {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .note-input:focus { border-color: #667eea; }
+
+        .note-save-btn {
+            padding: 8px 14px;
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .note-save-btn:hover { background: #5a6fd6; }
+
+        .user-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-approve {
+            flex: 1;
+            padding: 8px;
+            background: #27ae60;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .btn-approve:hover { background: #219a52; }
+
+        .btn-reject {
+            flex: 1;
+            padding: 8px;
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .btn-reject:hover { background: #c0392b; }
+
+        .empty-tip {
+            text-align: center;
+            color: #aaa;
+            padding: 40px 0;
+            font-size: 14px;
+        }
+
+        .export-btn {
+            padding: 6px 14px;
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .export-btn:hover { background: #5a6fd6; }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .log-item {
+            background: #fff;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            font-size: 13px;
+        }
+
+        .log-user { font-weight: 600; color: #333; }
+        .log-time { color: #aaa; font-size: 12px; }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-60px);
+            padding: 12px 24px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 9999;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .toast.error { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+
+        .login-required {
+            display: none;
+            text-align: center;
+            padding: 80px 20px;
+            color: #888;
+        }
+
+        .login-required h2 {
+            color: #e74c3c;
+            margin-bottom: 12px;
+        }
+
+        #mainContent { display: none; }
+
+        /* ===== 用户管理：搜索/筛选/新增/编辑/删除 ===== */
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 150px;
+            padding: 9px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .search-input:focus { border-color: #667eea; }
+
+        .filter-select {
+            padding: 9px 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 13px;
+            background: #fff;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .btn-add-user {
+            padding: 9px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-add-user:hover { opacity: 0.9; }
+
+        .role-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 500;
+            margin-left: 6px;
+            vertical-align: 1px;
+        }
+
+        .role-admin { background: #ede7f6; color: #7c4dff; }
+        .role-user { background: #eef2f7; color: #7f8c9b; }
+        .role-self { background: #e8f8ef; color: #27ae60; }
+
+        .btn-manage {
+            flex: 1;
+            padding: 8px;
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .btn-manage:hover { background: #5a6fd6; }
+
+        .btn-delete {
+            flex: 1;
+            padding: 8px;
+            background: #fff;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .btn-delete:hover { background: #fdeaea; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px 20px;
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal h3 {
+            font-size: 17px;
+            color: #333;
+            margin-bottom: 18px;
+        }
+
+        .modal .form-group { margin-bottom: 14px; }
+
+        .modal .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .modal input, .modal select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            background: #fafafa;
+            font-family: inherit;
+        }
+
+        .modal input:focus, .modal select:focus { border-color: #667eea; background: #fff; }
+
+        .hint {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 11px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-cancel { background: #f0f2f5; color: #666; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div id="loginRequired" class="login-required">
+        <h2>⛔ 无权限</h2>
+        <p>请先登录管理员账号</p>
+        <p id="loginHint" style="margin-top:12px;color:#e74c3c;font-size:13px"></p>
+        <p style="margin-top:12px"><a href="login.html" style="color:#667eea">返回登录</a></p>
+    </div>
+
+    <div id="mainContent">
+        <div class="header">
+            <div class="header-left">
+                <h1>📋 管理后台</h1>
+            </div>
+            <div class="header-right">
+                <span class="admin-name" id="adminName"></span>
+                <button class="logout-btn" onclick="refreshData()">刷新</button>
+                <button class="logout-btn" onclick="handleLogout()">退出</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="pending" onclick="switchTab('pending')">待审核 <span id="pendingCount">0</span></div>
+            <div class="tab" data-tab="users" onclick="switchTab('users')">全部用户 <span id="approvedCount">0</span>/<span id="totalUsers">0</span></div>
+            <div class="tab" data-tab="logs" onclick="switchTab('logs')">登录日志</div>
+        </div>
+
+        <div class="tab-content active" id="tab-pending">
+            <div id="pendingList"></div>
+        </div>
+
+        <div class="tab-content" id="tab-users">
+            <div class="toolbar">
+                <input class="search-input" id="userSearch" placeholder="🔍 搜索用户名/邀请人/备注..." oninput="onSearchInput(this.value)">
+                <select class="filter-select" id="statusFilter" onchange="onFilterChange(this.value)">
+                    <option value="all">全部状态</option>
+                    <option value="approved">已通过</option>
+                    <option value="pending">待审核</option>
+                    <option value="rejected">已驳回</option>
+                </select>
+                <button class="btn-add-user" onclick="openCreateUser()">＋ 新增用户</button>
+            </div>
+            <div id="userList"></div>
+        </div>
+
+        <div class="tab-content" id="tab-logs">
+            <div class="section-header">
+                <span class="section-title">最近登录记录</span>
+                <button class="export-btn" onclick="exportLogs()">导出 CSV</button>
+            </div>
+            <div id="logList"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal">
+            <h3 id="modalTitle">编辑用户</h3>
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="mUsername" placeholder="请输入用户名" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label id="mPasswordLabel">重置密码</label>
+                <input type="text" id="mPassword" placeholder="留空则不修改密码" autocomplete="new-password">
+                <div class="hint" id="mPasswordHint">至少 6 位；填写后该用户原密码将被重置</div>
+            </div>
+            <div class="form-group">
+                <label>角色</label>
+                <select id="mRole">
+                    <option value="user">普通用户</option>
+                    <option value="admin">管理员</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>状态</label>
+                <select id="mStatus">
+                    <option value="approved">已通过</option>
+                    <option value="pending">待审核</option>
+                    <option value="rejected">已驳回</option>
+                </select>
+            </div>
+            <div class="form-group" id="mInvitedByGroup">
+                <label>邀请人</label>
+                <input type="text" id="mInvitedBy" placeholder="选填，需为已注册用户的账户名" autocomplete="off">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">取消</button>
+                <button class="btn-primary" id="mSaveBtn" onclick="submitModal()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        const SUPABASE_URL = 'https://hqoeptonghttbqggpcwx.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_ShrC-Qjx3-V_cfIcrYgqWw_HEp4pE_-';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let allUsers = [];
+        let allLogs = [];
+
+        // 用户管理状态
+        let userSearchKey = '';
+        let statusFilterVal = 'all';
+        let editingUserId = null; // null = 新增模式
+        let currentAdmin = null;
+
+        function escapeHtml(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(password));
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // 管理凭证：登录时存入（管理员密码的 SHA-256），后台所有操作都靠它验证
+        const ADMIN_TOKEN = localStorage.getItem('leave_token') || '';
+
+        function asJson(d) {
+            if (d && typeof d === 'object') return d;
+            if (typeof d === 'string') { try { return JSON.parse(d); } catch (e) { return null; } }
+            return null;
+        }
+
+        // 统一调用后台管理函数；凭证失效时自动退回登录页
+        async function callAdminOp(action, target, data) {
+            const { data: raw, error } = await supabase.rpc('admin_op', {
+                p_token: ADMIN_TOKEN,
+                p_action: action,
+                p_target: target,
+                p_data: data ?? null
+            });
+            const res = asJson(raw);
+            if (error) {
+                showToast('操作失败：' + (error.message || '未知错误'), 'error');
+                return null;
+            }
+            if (!res || res.error) {
+                showToast((res && res.error) || '操作失败', 'error');
+                if (res && res.error === '管理员验证失败') setTimeout(handleLogout, 1200);
+                return null;
+            }
+            return res;
+        }
+
+        function showToast(msg, type = '') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show' + (type ? ' ' + type : '');
+            setTimeout(() => t.className = 'toast', 2500);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            const d = new Date(dateStr);
+            return d.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        function shortUA(ua) {
+            if (!ua) return '—';
+            if (ua.includes('Windows')) return 'Windows PC';
+            if (ua.includes('Macintosh') || ua.includes('Mac OS')) return 'Mac';
+            if (ua.includes('iPhone')) return 'iPhone';
+            if (ua.includes('Android')) return 'Android';
+            return '其他设备';
+        }
+
+        window.switchTab = function(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + name));
+        };
+
+        function renderPending(users) {
+            const list = users.filter(u => u.status === 'pending');
+            document.getElementById('pendingCount').textContent = list.length;
+            const el = document.getElementById('pendingList');
+            if (list.length === 0) {
+                el.innerHTML = '<div class="empty-tip">暂无待审核用户</div>';
+                return;
+            }
+            el.innerHTML = list.map(u => `
+                <div class="user-card">
+                    <div class="user-card-header">
+                        <span class="user-name">${u.username}</span>
+                        <span class="status-badge status-pending">待审核</span>
+                    </div>
+                    <div class="invite-tag">邀请人：${u.invited_by || '无'}</div>
+                    <div class="user-meta">
+                        <span>注册时间：${formatDate(u.created_at)}</span>
+                    </div>
+                    <div class="user-actions">
+                        <button class="btn-approve" onclick="approveUser('${u.id}')">通过</button>
+                        <button class="btn-reject" onclick="rejectUser('${u.id}')">驳回</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderUsers(users) {
+            const approved = users.filter(u => u.status === 'approved');
+            const total = users.length;
+            document.getElementById('approvedCount').textContent = approved.length;
+            document.getElementById('totalUsers').textContent = total;
+
+            const el = document.getElementById('userList');
+            let sorted = [...users].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+            if (statusFilterVal !== 'all') sorted = sorted.filter(u => u.status === statusFilterVal);
+            if (userSearchKey) {
+                sorted = sorted.filter(u =>
+                    (u.username || '').toLowerCase().includes(userSearchKey) ||
+                    (u.invited_by || '').toLowerCase().includes(userSearchKey) ||
+                    (u.note || '').toLowerCase().includes(userSearchKey)
+                );
+            }
+            if (sorted.length === 0) {
+                el.innerHTML = `<div class="empty-tip">${total === 0 ? '暂无用户' : '没有符合条件的用户'}</div>`;
+                return;
+            }
+            el.innerHTML = sorted.map(u => {
+                const statusClass = u.status === 'approved' ? 'status-approved' : u.status === 'rejected' ? 'status-rejected' : 'status-pending';
+                const statusText = u.status === 'approved' ? '已通过' : u.status === 'rejected' ? '已驳回' : '待审核';
+                const isSelf = currentAdmin && u.id === currentAdmin.id;
+                const roleBadge = u.role === 'admin'
+                    ? '<span class="role-badge role-admin">管理员</span>'
+                    : '<span class="role-badge role-user">用户</span>';
+                const selfBadge = isSelf ? '<span class="role-badge role-self">我</span>' : '';
+                return `
+                    <div class="user-card">
+                        <div class="user-card-header">
+                            <span class="user-name">${escapeHtml(u.username)}${roleBadge}${selfBadge}</span>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="invite-tag">邀请人：${escapeHtml(u.invited_by || '无')}</div>
+                        <div class="user-meta">
+                            <span>登录次数：${u.login_count || 0}</span>
+                            <span>最近登录：${formatDate(u.last_login)}</span>
+                        </div>
+                        <div class="note-section">
+                            <label>备注</label>
+                            <div class="note-input-row">
+                                <input class="note-input" id="note-${u.id}" value="${escapeHtml(u.note || '')}" placeholder="添加备注...">
+                                <button class="note-save-btn" onclick="saveNote('${u.id}')">保存</button>
+                            </div>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn-manage" onclick="openEditUser('${u.id}')">✏️ 编辑</button>
+                            <button class="btn-delete" onclick="deleteUser('${u.id}')">删除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderLogs(logs) {
+            const el = document.getElementById('logList');
+            if (logs.length === 0) {
+                el.innerHTML = '<div class="empty-tip">暂无登录记录</div>';
+                return;
+            }
+            el.innerHTML = logs.slice(0, 100).map(l => `
+                <div class="log-item">
+                    <div>
+                        <span class="log-user">${l.username}</span>
+                        <span style="color:#aaa; margin-left:6px;">${shortUA(l.user_agent)}</span>
+                    </div>
+                    <span class="log-time">${formatDate(l.login_time)}</span>
+                </div>
+            `).join('');
+        }
+
+        async function loadUsers() {
+            const { data } = await supabase.rpc('admin_list_users', { p_token: ADMIN_TOKEN });
+            const res = asJson(data);
+            if (res && res.error) {
+                showToast(res.error, 'error');
+                if (res.error === '管理员验证失败') setTimeout(handleLogout, 1200);
+                return;
+            }
+            if (res && res.ok) {
+                allUsers = res.data || [];
+                renderPending(allUsers);
+                renderUsers(allUsers);
+            }
+        }
+
+        async function loadLogs() {
+            const { data } = await supabase.rpc('admin_list_logs', { p_token: ADMIN_TOKEN });
+            const res = asJson(data);
+            if (res && res.ok) {
+                allLogs = res.data || [];
+                renderLogs(allLogs);
+            }
+        }
+
+        window.refreshData = function() {
+            loadUsers();
+            loadLogs();
+            showToast('已刷新', 'success');
+        };
+
+        window.approveUser = async function(uid) {
+            const res = await callAdminOp('update', uid, { status: 'approved' });
+            if (res) {
+                showToast('已通过', 'success');
+                await loadUsers();
+            }
+        };
+
+        window.rejectUser = async function(uid) {
+            const res = await callAdminOp('update', uid, { status: 'rejected' });
+            if (res) {
+                showToast('已驳回', 'success');
+                await loadUsers();
+            }
+        };
+
+        window.saveNote = async function(uid) {
+            const note = document.getElementById('note-' + uid).value.trim();
+            const res = await callAdminOp('update', uid, { note });
+            if (res) showToast('备注已保存', 'success');
+        };
+
+        // ===== 用户管理：搜索 / 筛选 / 新增 / 编辑 / 删除 =====
+        window.onSearchInput = function(v) {
+            userSearchKey = v.trim().toLowerCase();
+            renderUsers(allUsers);
+        };
+
+        window.onFilterChange = function(v) {
+            statusFilterVal = v;
+            renderUsers(allUsers);
+        };
+
+        function openModal(title, mode, u) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('mUsername').value = u ? u.username : '';
+            document.getElementById('mPassword').value = '';
+            document.getElementById('mRole').value = u ? (u.role || 'user') : 'user';
+            document.getElementById('mStatus').value = u ? (u.status || 'approved') : 'approved';
+            document.getElementById('mInvitedBy').value = '';
+            document.getElementById('mInvitedByGroup').style.display = mode === 'create' ? 'block' : 'none';
+            document.getElementById('mPasswordLabel').textContent = mode === 'create' ? '密码' : '重置密码';
+            document.getElementById('mPassword').placeholder = mode === 'create' ? '请输入密码（至少6位）' : '留空则不修改密码';
+            document.getElementById('mPasswordHint').textContent = mode === 'create' ? '至少 6 位' : '至少 6 位；填写后该用户原密码将被重置';
+            editingUserId = u ? u.id : null;
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        window.openEditUser = function(uid) {
+            const u = allUsers.find(x => x.id === uid);
+            if (u) openModal('编辑用户', 'edit', u);
+        };
+
+        window.openCreateUser = function() {
+            openModal('新增用户', 'create', null);
+        };
+
+        window.closeModal = function() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            editingUserId = null;
+        };
+
+        window.submitModal = async function() {
+            const username = document.getElementById('mUsername').value.trim();
+            const password = document.getElementById('mPassword').value;
+            const role = document.getElementById('mRole').value;
+            const status = document.getElementById('mStatus').value;
+            const saveBtn = document.getElementById('mSaveBtn');
+            const isCreate = !editingUserId;
+
+            if (!username) { showToast('用户名不能为空', 'error'); return; }
+            if (isCreate && !password) { showToast('请设置密码', 'error'); return; }
+            if (password && password.length < 6) { showToast('密码至少 6 位', 'error'); return; }
+
+            // 防止把自己锁在门外（自己的状态只允许改为已通过）
+            if (!isCreate && currentAdmin && editingUserId === currentAdmin.id) {
+                if (role !== 'admin') { showToast('不能修改自己的管理员角色', 'error'); return; }
+                if (status !== 'approved') { showToast('自己的状态只能设为已通过', 'error'); return; }
+            }
+
+            saveBtn.disabled = true;
+            try {
+                let res;
+                if (isCreate) {
+                    // 用户名查重、邀请人校验都在数据库函数内完成
+                    res = await callAdminOp('create', null, {
+                        username,
+                        password_hash: await hashPassword(password),
+                        role,
+                        status,
+                        invited_by: document.getElementById('mInvitedBy').value.trim()
+                    });
+                } else {
+                    const payload = { username, role, status };
+                    if (password) payload.password_hash = await hashPassword(password);
+                    res = await callAdminOp('update', editingUserId, payload);
+                }
+
+                if (res) {
+                    showToast(isCreate ? '用户已创建' : '已保存', 'success');
+                    closeModal();
+                    await loadUsers();
+                }
+            } catch (e) {
+                showToast('操作失败：' + e.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+            }
+        };
+
+        window.deleteUser = async function(uid) {
+            const u = allUsers.find(x => x.id === uid);
+            if (!u) return;
+            if (currentAdmin && uid === currentAdmin.id) {
+                showToast('不能删除自己的账号', 'error');
+                return;
+            }
+            if (!confirm(`确定删除用户「${u.username}」吗？\n该操作不可恢复，将同时删除其登录日志。`)) return;
+            const res = await callAdminOp('delete', uid, null);
+            if (res) {
+                showToast('已删除', 'success');
+                await loadUsers();
+            }
+        };
+
+                window.handleLogout = function() {
+            localStorage.removeItem('leave_user');
+            window.location.href = 'login.html';
+        };
+
+        window.exportLogs = function() {
+            if (allLogs.length === 0) {
+                showToast('暂无数据可导出', 'error');
+                return;
+            }
+            let csv = '\uFEFF账号,登录时间,设备\n';
+            allLogs.forEach(l => {
+                const time = l.login_time ? new Date(l.login_time).toLocaleString('zh-CN') : '—';
+                const device = shortUA(l.user_agent);
+                csv += `${l.username},${time},${device}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `登录记录_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showToast('导出成功', 'success');
+        };
+
+                // 初始化 — localStorage 鉴权
+        const adminUser = JSON.parse(localStorage.getItem('leave_user') || 'null');
+        if (!adminUser) {
+            document.getElementById('loginRequired').style.display = 'block';
+        } else if (adminUser.role !== 'admin') {
+            document.getElementById('loginRequired').style.display = 'block';
+        } else if (!ADMIN_TOKEN) {
+            // 旧版登录没有管理凭证，需要重新登录一次
+            document.getElementById('loginRequired').style.display = 'block';
+            document.getElementById('loginHint').textContent = '管理凭证缺失，请退出后重新登录一次';
+        } else {
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('adminName').textContent = adminUser.username;
+            currentAdmin = adminUser;
+
+            await loadUsers();
+            await loadLogs();
+
+            // 每 60 秒自动刷新用户列表和日志
+            setInterval(() => {
+                loadUsers();
+                loadLogs();
+            }, 60000);
+        }
+    </script>
+</body>
+</html>

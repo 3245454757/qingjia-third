@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!--workshop.html-->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+	
+	<title>掌上校园</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+	<link rel="stylesheet" href="./workshop_files/style.css">
+</head>
+<body>
+	<div class="app_container">
+		<input type="hidden" id="zsxyCategoryExtend" value="1">
+		<div class="banner">
+			<img src="./workshop_files/69802f3e-c046-4b95-87c3-84c82a29349e.jpg">
+		</div>
+		<div class="grxx">
+			<input type="hidden" id="isMp" value="">
+			<img class="tx" src="http://8.134.77.128:8000/zhangshangxiaoyuan/">
+			<span class="name" id="currentUserName"></span>
+			<a class="xx" id="detail" href="javascript:void(0);">个人信息 ›</a>
+		</div>
+		<div class="box">
+			<div class="line">
+				<span>教学科研</span>
+				<i class="arrow">▼</i>
+			</div>
+			<div class="weui_grids">
+				<a href="javascript:void(0);" class="weui_grid" id="common_wechat_timetable">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/e1fce2f6-1e3c-4033-8578-672ab0ba7f90.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">我的课表</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="finalTermNew">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/2ab1c7eb-8926-46cd-bec6-12ee56c3c0ec.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">期末报告</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="jiaowuguanlixitong">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/f7d902e1-1de8-4993-b630-3ef5058ac54b.jpg" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">移动教务</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="0206">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/d6ccd847-36e9-462b-82e5-48edd4f98034.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">移动图书馆</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="0210">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/52fe70a6-f962-4a42-a600-6dd9dde13169.jpg" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">实验系统</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="xlxt">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/ef7cc9ed-95fc-4684-99f2-56fc6aa90255.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">心理系统</p>
+				</a>
+			</div>
+		</div>
+		<div class="box">
+			<div class="line">
+				<span>办公应用</span>
+				<i class="arrow">▼</i>
+			</div>
+			<div class="weui_grids">
+				<a href="javascript:void(0);" class="weui_grid" id="newSchoolNews">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/d1200456-188c-4201-8e29-60894a9642fa.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">通知公示</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="new_vote">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/3a193b7c-cfb2-4832-a042-c1c3965bc973.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">投票/问卷</p>
+				</a>
+				<a href="waiting.html?target=list.html" class="weui_grid" id="ydxg-qjglxs">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/4bf861ff-6b09-4319-82b6-2fa860f54a53.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">学生请假申请</p>
+				</a>
+			</div>
+		</div>
+		<div class="box">
+			<div class="line">
+				<span>数据服务</span>
+				<i class="arrow">▼</i>
+			</div>
+			<div class="weui_grids">
+				<a href="javascript:void(0);" class="weui_grid" id="common_wechat_exam">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/a103021c-c81b-44db-abf1-f177c872f3f4.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">我的考试</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="common_wechat_score">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/d8c3321e-c116-4ae7-9a6f-52ca23f4d991.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">我的成绩</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="common_ybg_onecard">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/a54de099-fe48-4e26-8ae7-0b0159049a08.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">一卡通消费</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="myNewAchievements">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/5229f3a5-4551-4066-bb76-3771a7275bd7.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">我的科研</p>
+				</a>
+			</div>
+		</div>
+		<div class="box">
+			<div class="line">
+				<span>校园助手</span>
+				<i class="arrow">▼</i>
+			</div>
+			<div class="weui_grids">
+				<a href="javascript:void(0);" class="weui_grid" id="common_lost_found">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/a55764e9-076c-4774-94bd-6ab84868edf1.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">失物招领</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="schoolBus">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/6c34cadb-33a9-4a57-ad7d-df0eef57a870.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">学校班车</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="xiaoli">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/30cbde83-e574-4808-a5b7-f33445ecfdd0.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">校历</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="invoice_assistant">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/43dae428-90c6-47cb-be16-354488e8fa52.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">发票助手</p>
+				</a>
+				<a href="javascript:void(0);" class="weui_grid" id="hqwx_front">
+					<div class="weui_grid_icon">
+						<img src="./workshop_files/1a3aca45-2548-41cc-8610-a85fc8f45500.png" onerror="onImgError(event)">
+					</div>
+					<p class="weui_grid_label">维修申请</p>
+				</a>
+			</div>
+		</div>
+		<div class="show_search_page"></div>
+	</div>
+
+
+	<script>
+		(function () {
+			var user = null;
+			try { user = JSON.parse(localStorage.getItem('leave_user') || 'null'); } catch (e) { user = null; }
+			var el = document.getElementById('currentUserName');
+			if (!user || !user.username) {
+				el.remove();
+			} else {
+				el.textContent = user.username;
+			}
+		})();
+	</script>
+</body></html>

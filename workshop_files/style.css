@@ -1,0 +1,226 @@
+* {
+    margin: 0;
+    padding: 0
+}
+
+html {
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%
+}
+
+body {
+    line-height: 1.6;
+    background: #f2f2f2;
+    font-family: 黑体;
+}
+
+html, body {
+    height: 100%;
+    font-size: 15px;
+}
+
+a img {
+    border: 0
+}
+
+a {
+    text-decoration: none
+}
+
+div {
+    -webkit-tap-highlight-color: transparent
+}
+
+.clearfix:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden
+}
+
+.app_container {
+    height: 100%;
+    padding-bottom: 50px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.banner {
+    width: 100%;
+}
+
+.banner img {
+    width: 100%
+}
+
+.weui_grids {
+    display: flex;
+    flex-wrap: wrap;
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+    transition: all 0.25s;
+    -webkit-transition: all 0.25s;
+}
+
+.weui_grid {
+    position: relative;
+    padding: 12px 10px;
+    width: 25%;
+    box-sizing: border-box;
+}
+
+.weui_grid .badge {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    display: block;
+    background-color: #ff6969;
+    color: #ffffff;
+    padding: 2px 5px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    border-radius: 20px;
+    transform: scale(0.8);
+    -webkit-transform: scale(0.8);
+    line-height: normal;
+}
+
+.weui_grid .badge.blod {
+    font-weight: bold;
+}
+
+.weui_grid_icon {
+    text-align: center
+}
+
+.weui_grid_icon img {
+    width: 32px;
+    height: 32px;
+    margin: 0 auto
+}
+
+.weui_grid_label {
+    text-align: center;
+    color: #000;
+    font-size: 12px;
+    justify-content: center;
+    display: flex;
+    display: -webkit-flex;
+    align-items: center;
+    line-height: 15px;
+    height: 35px;
+}
+.grxx {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 7px 15px;
+    background: #fff;
+    position: relative
+}
+
+.grxx .tx {
+    width: 28px;
+    height: 28px;
+    border-radius: 14px;
+    vertical-align: middle
+}
+
+.grxx .name {
+    flex: 1;
+    font-size: 17px;
+    color: #333;
+    vertical-align: middle;
+    margin-left: 10px
+}
+
+.grxx .xx {
+    display: block;
+    font-size: 15px;
+    padding-right: 10px;
+    color: #999;
+}
+
+.box {
+    margin-bottom: 12px;
+    background: #fff;
+}
+
+.box .line {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 12px 10px 12px 25px;
+    background: #fff;
+    color: #333;
+    font-size: 16px;
+}
+
+.box .line:before {
+    height: 15px;
+    width: 4px;
+    background: #3678ff;
+    position: absolute;
+    content: "";
+    display: block;
+    left: 17px;
+    top: 50%;
+    z-index: 1000;
+    transform: translateY(-50%);
+    -webkit-transform: translateY(-50%);
+}
+
+.box .line span {
+    flex: 1;
+}
+
+.box .line .arrow {
+    display: inline-block;
+    color: #999;
+    font-size: 14px;
+    line-height: 1;
+    margin-left: auto;
+}
+
+.txt {
+    font-size: 10px;
+    color: #999;
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    top: 6px;
+    left: 0
+}
+
+.tip {
+    font-size: 12px;
+    position: absolute;
+    top: 15px;
+    right: 18%;
+    padding: 2px;
+    min-width: 18px;
+    line-height: 1;
+    background-color: red;
+    color: #fff;
+    border-radius: 10px;
+    text-align: center
+}
+
+.show_search_page {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #fff url(search.png) center / contain no-repeat;
+    box-shadow: 0 0 4px 1px rgba(0, 0, 0, 0.2);
+}
+
+a:not(#ydxg-qjglxs) {
+    pointer-events: none;
+    cursor: default;
+}
+
