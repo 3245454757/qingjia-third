@@ -195,6 +195,45 @@
     .app-topbar .topbar-title { font-size: 16px; font-weight: 500; color: #333; line-height: 1; }
     body { padding-top: calc(44px + env(safe-area-inset-top)); }
   </style>
+<!-- 通用确认弹窗（替代原生 confirm，白色圆角卡片 + 半透明遮罩，企微风） -->
+  <style>
+    .cf-mask {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 10001;
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .cf-mask.show { display: flex; }
+    .cf-card {
+      background: #fff;
+      border-radius: 14px;
+      width: 100%; max-width: 300px;
+      padding: 24px 20px 16px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,.18);
+      animation: cfIn .2s ease;
+    }
+    @keyframes cfIn {
+      from { opacity: 0; transform: scale(.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .cf-title { font-size: 17px; font-weight: 600; color: #333; margin: 0 0 8px; }
+    .cf-desc { font-size: 14px; color: #666; line-height: 1.6; margin: 0 0 20px; }
+    .cf-btns { display: flex; gap: 10px; }
+    .cf-btn {
+      flex: 1; padding: 10px 0;
+      border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 500;
+      font-family: inherit; cursor: pointer;
+      transition: opacity .15s;
+    }
+    .cf-btn:active { opacity: .8; }
+    .cf-btn.cancel { background: #f0f2f5; color: #666; }
+    .cf-btn.ok { background: #5a9cf5; color: #fff; }
+    .cf-btn.ok.danger { background: #e74c3c; }
+  </style>
 </head>
 <body>
   <header class="app-topbar">
@@ -315,6 +354,18 @@
       <span>我</span>
     </a>
   </div>
+
+  <!-- 确认弹窗结构 -->
+  <div class="cf-mask" id="cfMask">
+    <div class="cf-card">
+      <h3 class="cf-title" id="cfTitle"></h3>
+      <p class="cf-desc" id="cfDesc"></p>
+      <div class="cf-btns">
+        <button type="button" class="cf-btn cancel" id="cfCancel">取消</button>
+        <button type="button" class="cf-btn ok" id="cfOk">确定</button>
+      </div>
+    </div>
+  </div>
   <script>
     (function () {
       var mask = document.getElementById('loading-mask');
@@ -339,6 +390,26 @@
     })();
   </script>
   <script>
+    /* 自绘确认弹窗：showConfirm(message, options, onOk) */
+    function showConfirm(msg, opts, onOk) {
+      var mask = document.getElementById('cfMask');
+      document.getElementById('cfTitle').textContent = msg;
+      document.getElementById('cfDesc').textContent = (opts && opts.desc) || '';
+      var okBtn = document.getElementById('cfOk');
+      okBtn.textContent = (opts && opts.okText) || '确定';
+      okBtn.classList.toggle('danger', !!(opts && opts.danger));
+      mask.classList.add('show');
+      okBtn.onclick = function () {
+        mask.classList.remove('show');
+        if (onOk) onOk();
+      };
+      document.getElementById('cfCancel').onclick = function () {
+        mask.classList.remove('show');
+      };
+      mask.onclick = function (e) { if (e.target === mask) mask.classList.remove('show'); };
+    }
+  </script>
+  <script>
     /* 底部 Tab 行为：消息=退出确认；我=管理员判断（判定规则与 admin.html 一致：leave_user.role === 'admin'） */
     (function () {
       function toast(msg) {
@@ -359,7 +430,7 @@
       var msgTab = document.getElementById('tab-msg');
       if (msgTab) msgTab.addEventListener('click', function (e) {
         e.preventDefault();
-        if (confirm('是否退出登录？')) logout();
+        showConfirm('退出登录', { desc: '退出后需要重新登录才能继续使用', okText: '退出', danger: true }, function () { logout(); });
       });
       var meTab = document.getElementById('tab-me');
       if (meTab) meTab.addEventListener('click', function (e) {
@@ -368,7 +439,9 @@
         try { u = JSON.parse(localStorage.getItem('leave_user') || 'null'); } catch (err) { u = null; }
         if (!u) { toast('请先登录'); return; }
         if (u.role === 'admin') {
-          if (confirm('是否进入后台管理？')) window.location.href = 'admin.html';
+          showConfirm('进入后台管理', { desc: '将跳转到后台管理页面，仅管理员可操作', okText: '进入' }, function () {
+            window.location.href = 'admin.html';
+          });
         } else {
           toast('当前账号无后台管理权限');
         }

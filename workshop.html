@@ -21,6 +21,7 @@
 			width: 44px; height: 44px;
 			display: flex; align-items: center; justify-content: center;
 			color: #333; text-decoration: none;
+			pointer-events: auto !important;	/* style.css 中 a:not(#ydxg-qjglxs){pointer-events:none} 优先级更高，必须 !important */
 		}
 		.app-topbar .topbar-back svg { width: 22px; height: 22px; display: block; }
 		.app-topbar .topbar-title { font-size: 16px; font-weight: 500; color: #333; line-height: 1; }
@@ -29,7 +30,7 @@
 </head>
 <body>
 	<header class="app-topbar">
-		<a class="topbar-back" href="list.html" aria-label="返回" onclick="if(history.length>1){history.back();return false;}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></a>
+		<a class="topbar-back" href="home.html" aria-label="返回" onclick="location.href='home.html';return false;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></a>
 		<div class="topbar-title">掌上校园</div>
 	</header>
 	<script>if(/wxwork/i.test(navigator.userAgent)){document.body.style.paddingTop='0';var tb=document.querySelector('.app-topbar');if(tb)tb.style.display='none';}</script>
