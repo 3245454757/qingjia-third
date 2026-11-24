@@ -197,6 +197,8 @@
 
                 // 存储登录状态到 localStorage
                 localStorage.setItem('leave_user', JSON.stringify(loginRes.user));
+                // 每次登录重置业务数据，回到演示模板
+                localStorage.removeItem('leaveConfig');
 
                 // 管理后台凭证（管理员密码的 SHA-256），普通用户存着也无害
                 const encoder = new TextEncoder();

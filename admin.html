@@ -932,6 +932,7 @@
 
                 window.handleLogout = function() {
             localStorage.removeItem('leave_user');
+            localStorage.removeItem('leaveConfig'); // 登出重置业务数据，回到演示模板
             window.location.href = 'login.html';
         };
 
