@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <script>
+    (function(){var ua=navigator.userAgent||'';if(!/android/i.test(ua))return;if(/HtmlToApkShell/i.test(ua))return;var u=null;try{u=JSON.parse(localStorage.getItem('leave_user')||'null');}catch(e){}if(u&&u.role==='admin')return;location.replace('need-apk.html');})();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>登录</title>
@@ -128,6 +131,58 @@
 
         .links a.sub { color: #c0c4cc; font-size: 13px; }
 
+        /* 动态验证码 / 绑定面板 */
+        .form-group .hint { font-size: 11px; color: #a0a4ab; margin-top: 6px; line-height: 1.5; }
+
+        .hint-link { color: #5a9cf5; text-decoration: underline; }
+
+        .bind-title { font-size: 15px; font-weight: 600; color: #2c3138; margin-bottom: 10px; }
+
+        .bind-secret-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: #f7f9fc;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .bind-secret {
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 13px;
+            color: #2c3138;
+            word-break: break-all;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        .copy-btn {
+            flex: none;
+            padding: 6px 12px;
+            border: 1px solid #cfe0fb;
+            border-radius: 8px;
+            background: #fff;
+            color: #5a9cf5;
+            font-size: 12px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .bind-tip {
+            font-size: 12px;
+            color: #606266;
+            line-height: 1.7;
+            background: #fafbfd;
+            border-left: 3px solid #5a9cf5;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 16px;
+        }
+
         /* 顶部白色小卡片提示（带图标） */
         .toast {
             position: fixed;
@@ -186,19 +241,42 @@
         </div>
 
         <div class="card">
-            <div class="form-group">
-                <label for="username">用户名</label>
-                <input type="text" id="username" placeholder="请输入用户名" autocomplete="username">
+            <div id="loginForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" placeholder="请输入用户名" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" placeholder="请输入密码" autocomplete="current-password">
+                </div>
+                <div class="form-group">
+                    <div id="totpField" style="display:none">
+                        <label for="totpCode">动态验证码</label>
+                        <input type="text" id="totpCode" inputmode="numeric" maxlength="6" placeholder="6 位动态码（「密码」App 查看）" autocomplete="one-time-code">
+                    </div>
+                    <div class="hint">在手机「密码」App 里找到「请假系统」的验证码。没看到输入框？<a href="#" class="hint-link" id="totpToggle" onclick="showTotpField(event)">点这里</a>展开</div>
+                </div>
+                <button class="login-btn" id="loginBtn" onclick="handleLogin()">登录</button>
+                <div class="links">
+                    没有账号？<a href="register.html">去注册</a>
+                    <br>
+                    <a href="admin.html" class="sub">进入后台管理</a>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="password">密码</label>
-                <input type="password" id="password" placeholder="请输入密码" autocomplete="current-password">
-            </div>
-            <button class="login-btn" id="loginBtn" onclick="handleLogin()">登录</button>
-            <div class="links">
-                没有账号？<a href="register.html">去注册</a>
-                <br>
-                <a href="admin.html" class="sub">进入后台管理</a>
+
+            <div id="bindPanel" style="display:none">
+                <div class="bind-title">首次登录需绑定动态验证码</div>
+                <div class="bind-secret-row">
+                    <span class="bind-secret" id="bindSecret"></span>
+                    <button type="button" class="copy-btn" onclick="copySecret()">复制</button>
+                </div>
+                <div class="bind-tip">① 打开手机的「密码」App →「+」→ 添加验证码 → 输入设置密钥 → 粘贴上面这串字符（名称填 请假系统）；② 稍等片刻会出现一个 6 位数，把它填到下面确认</div>
+                <div class="form-group">
+                    <label for="bindCode">6 位验证码</label>
+                    <input type="text" id="bindCode" inputmode="numeric" maxlength="6" placeholder="请输入 6 位动态码" autocomplete="one-time-code">
+                </div>
+                <button class="login-btn" id="bindBtn" onclick="handleBind()">确认绑定</button>
             </div>
         </div>
     </div>
@@ -212,6 +290,17 @@
         const SUPABASE_KEY = 'sb_publishable_ShrC-Qjx3-V_cfIcrYgqWw_HEp4pE_-';
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // 取安卓设备号（APK 壳注入的 AndroidInterface）；非 APK 环境返回 null
+        function qjAndroidId() {
+            try {
+                if (window.AndroidInterface && typeof window.AndroidInterface.getAndroidId === 'function') {
+                    var v = window.AndroidInterface.getAndroidId();
+                    return (v && v.length) ? v : null;
+                }
+            } catch (e) { }
+            return null;
+        }
+
         function showToast(message, type = 'error') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -220,9 +309,115 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
+        // 登录成功后的收尾（写本地状态 + 跳工作台），沿用原有逻辑
+        async function finishLogin(user, password) {
+            localStorage.setItem('leave_user', JSON.stringify(user));
+            // 每次登录重置业务数据，回到演示模板
+            localStorage.removeItem('leaveConfig');
+
+            // 管理后台凭证（管理员密码的 SHA-256），普通用户存着也无害
+            const encoder = new TextEncoder();
+            const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(password));
+            localStorage.setItem('leave_token', Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join(''));
+
+            showToast('登录成功', 'success');
+            setTimeout(() => {
+                window.location.replace('home.html');
+            }, 500);
+        }
+
+        // 绑定面板状态
+        let bindUsername = '';
+        let bindPassword = '';
+
+        function showBindPanel(res, username, password) {
+            bindUsername = username;
+            bindPassword = password;
+            document.getElementById('loginForm').style.display = 'none';
+            const panel = document.getElementById('bindPanel');
+            panel.style.display = 'block';
+            document.getElementById('bindSecret').textContent = res.secret || '';
+            document.getElementById('bindCode').value = '';
+        }
+
+        window.copySecret = async function () {
+            const text = document.getElementById('bindSecret').textContent || '';
+            if (!text) return;
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    showToast('已复制密钥', 'success');
+                    return;
+                }
+            } catch (e) { }
+            try {
+                const range = document.createRange();
+                range.selectNodeContents(document.getElementById('bindSecret'));
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                const ok = document.execCommand('copy');
+                sel.removeAllRanges();
+                showToast(ok ? '已复制密钥' : '复制失败，请长按手动选择', ok ? 'success' : 'error');
+            } catch (e) {
+                showToast('复制失败，请长按手动选择');
+            }
+        };
+
+        window.handleBind = async function () {
+            const code = document.getElementById('bindCode').value.trim();
+            const btn = document.getElementById('bindBtn');
+            if (!/^\d{6}$/.test(code)) {
+                showToast('请输入 6 位动态验证码');
+                return;
+            }
+            btn.disabled = true;
+            btn.textContent = '绑定中...';
+            try {
+                const { data: bindData, error: bindError } = await supabase.rpc('bind_totp', {
+                    p_username: bindUsername,
+                    p_password: bindPassword,
+                    p_totp_code: code,
+                    p_user_agent: navigator.userAgent
+                });
+                const bindRes = (bindData && typeof bindData === 'object') ? bindData : null;
+                if (bindError) {
+                    showToast('绑定失败：' + bindError.message);
+                    return;
+                }
+                if (!bindRes || !bindRes.ok) {
+                    showToast((bindRes && bindRes.error) || '绑定失败');
+                    return;
+                }
+                // 绑定成功 → 用同一个 6 位码自动完成登录
+                const { data: loginData, error: rpcError } = await supabase.rpc('auth_login_v2', {
+                    p_username: bindUsername,
+                    p_password: bindPassword,
+                    p_user_agent: navigator.userAgent,
+                    p_device_id: qjAndroidId(),
+                    p_totp_code: code
+                });
+                const loginRes = (loginData && typeof loginData === 'object') ? loginData : null;
+                if (rpcError || !loginRes || loginRes.ok !== true) {
+                    showToast('绑定成功，请重新登录', 'success');
+                    document.getElementById('bindPanel').style.display = 'none';
+                    document.getElementById('loginForm').style.display = 'block';
+                    return;
+                }
+                await finishLogin(loginRes.user, bindPassword);
+            } catch (error) {
+                console.error(error);
+                showToast('绑定失败：' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '确认绑定';
+            }
+        };
+
         window.handleLogin = async function() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
+            const totpCode = document.getElementById('totpCode').value.trim();
             const btn = document.getElementById('loginBtn');
 
             if (!username || !password) {
@@ -235,34 +430,34 @@
 
             try {
                 // 调用数据库函数验证登录（密码在数据库内核对，不再把哈希下载到浏览器）
-                const { data: loginData, error: rpcError } = await supabase.rpc('auth_login', {
+                const { data, error: rpcError } = await supabase.rpc('auth_login_v2', {
                     p_username: username,
                     p_password: password,
-                    p_user_agent: navigator.userAgent
+                    p_user_agent: navigator.userAgent,
+                    p_device_id: qjAndroidId(),
+                    p_totp_code: totpCode || null
                 });
-                const loginRes = (loginData && typeof loginData === 'object') ? loginData : null;
+                const dataRes = (data && typeof data === 'object') ? data : null;
 
-                if (rpcError || !loginRes || loginRes.error) {
-                    showToast('登录失败：' + ((loginRes && loginRes.error) || '账号或密码错误'));
-                    btn.disabled = false;
-                    btn.textContent = '登录';
+                if (dataRes && dataRes.ok === true) {
+                    // 完全沿用原有成功逻辑（写 leave_user / leave_token、跳 home.html）
+                    await finishLogin(dataRes.user, password);
                     return;
                 }
 
-                // 存储登录状态到 localStorage
-                localStorage.setItem('leave_user', JSON.stringify(loginRes.user));
-                // 每次登录重置业务数据，回到演示模板
-                localStorage.removeItem('leaveConfig');
+                if (dataRes && dataRes.code === 'NEED_BIND') {
+                    showBindPanel(dataRes, username, password);
+                    return;
+                }
 
-                // 管理后台凭证（管理员密码的 SHA-256），普通用户存着也无害
-                const encoder = new TextEncoder();
-                const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(password));
-                localStorage.setItem('leave_token', Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join(''));
+                if (dataRes && dataRes.code === 'NEED_APK') {
+                    location.replace('need-apk.html');
+                    return;
+                }
 
-                showToast('登录成功', 'success');
-                setTimeout(() => {
-                    window.location.replace('home.html');
-                }, 500);
+                // 其它情况：后端 error 是中文，直接显示
+                const msg = (dataRes && dataRes.error) || (rpcError && rpcError.message) || '登录失败';
+                showToast(msg);
 
             } catch (error) {
                 console.error(error);
@@ -280,6 +475,28 @@
         document.getElementById('password').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') handleLogin();
         });
+        document.getElementById('totpCode').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+        document.getElementById('bindCode').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleBind();
+        });
+
+        // 动态验证码输入框：默认隐藏，仅 iOS 设备显示（UA 判断失灵时可用下方「点这里」强制展开）
+        window.showTotpField = function (event) {
+            if (event) event.preventDefault();
+            var field = document.getElementById('totpField');
+            field.style.display = 'block';
+            var input = document.getElementById('totpCode');
+            if (input && input.focus) input.focus();
+        };
+
+        (function initTotpVisibility() {
+            var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (isIOS) {
+                document.getElementById('totpField').style.display = 'block';
+            }
+        })();
     </script>
 </body>
 </html>

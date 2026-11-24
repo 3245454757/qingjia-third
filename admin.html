@@ -306,6 +306,140 @@
         .log-user { font-weight: 600; color: #333; }
         .log-time { color: #aaa; font-size: 12px; }
 
+        /* ===== 绑定信息 / 登录记录 / 邀请码 ===== */
+        .device-code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 11px;
+            color: #6b7280;
+            word-break: break-all;
+        }
+
+        .bind-line {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 16px;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .log-item { display: block; }
+
+        .log-line-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .log-result { font-size: 12px; font-weight: 600; }
+        .log-result.ok { color: #27ae60; }
+        .log-result.fail { color: #e74c3c; }
+
+        .log-fields {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 14px;
+            font-size: 11px;
+            color: #9aa0a6;
+            line-height: 1.7;
+        }
+
+        .invite-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .invite-toolbar select,
+        .invite-toolbar input {
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            color: #333;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        .invite-toolbar input { flex: 1; min-width: 120px; }
+
+        .invite-toolbar button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #5a9cf5;
+            color: #fff;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .invite-gen-list { margin-bottom: 14px; }
+
+        .invite-gen-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #f7f9fc;
+            border: 1px dashed #cfe0fb;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        .invite-code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 14px;
+            color: #2c3138;
+            letter-spacing: .5px;
+            word-break: break-all;
+        }
+
+        .invite-copy-btn {
+            flex: none;
+            padding: 5px 12px;
+            border: 1px solid #cfe0fb;
+            border-radius: 8px;
+            background: #fff;
+            color: #5a9cf5;
+            font-size: 12px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .invite-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.05);
+        }
+
+        .invite-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .invite-state {
+            flex: none;
+            font-size: 11px;
+            padding: 2px 9px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .invite-state.unused { background: #e8f3fe; color: #2b7fd4; }
+        .invite-state.used { background: #e8f8ef; color: #27ae60; }
+        .invite-state.expired { background: #f2f3f5; color: #9aa0a6; }
+
         .toast {
             position: fixed;
             top: calc(16px + env(safe-area-inset-top));
@@ -640,6 +774,7 @@
             <div class="tab active" data-tab="pending" onclick="switchTab('pending')">待审核 <span id="pendingCount">0</span></div>
             <div class="tab" data-tab="users" onclick="switchTab('users')">全部用户 <span id="approvedCount">0</span>/<span id="totalUsers">0</span></div>
             <div class="tab" data-tab="logs" onclick="switchTab('logs')">登录日志</div>
+            <div class="tab" data-tab="invites" onclick="switchTab('invites')">邀请码</div>
         </div>
 
         <div class="tab-content active" id="tab-pending">
@@ -666,6 +801,24 @@
                 <button class="export-btn" onclick="exportLogs()">导出 CSV</button>
             </div>
             <div id="logList"></div>
+        </div>
+
+        <div class="tab-content" id="tab-invites">
+            <div class="invite-toolbar">
+                <select id="inviteCount">
+                    <option value="1">1 个</option>
+                    <option value="5" selected>5 个</option>
+                    <option value="10">10 个</option>
+                </select>
+                <input type="text" id="inviteNote" placeholder="备注（可空，如：给某某同学）" maxlength="40">
+                <button id="genInviteBtn" onclick="genInvites()">生成邀请码</button>
+            </div>
+            <div class="invite-gen-list" id="inviteGenList"></div>
+            <div class="section-header">
+                <span class="section-title">邀请码记录</span>
+                <button class="export-btn" onclick="loadInvites()">刷新</button>
+            </div>
+            <div id="inviteList"></div>
         </div>
     </div>
 
@@ -703,6 +856,20 @@
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()">取消</button>
                 <button class="btn-primary" id="mSaveBtn" onclick="submitModal()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通用二次确认弹窗（沿用 modal 样式） -->
+    <div class="modal-overlay" id="confirmOverlay" onclick="if(event.target===this) closeConfirm()">
+        <div class="modal">
+            <h3 id="confirmTitle">确认操作</h3>
+            <div class="form-group">
+                <div id="confirmMsg" style="font-size:13px;color:#606266;line-height:1.7;"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeConfirm()">取消</button>
+                <button class="btn-primary" id="confirmOkBtn" onclick="runConfirm()">确定</button>
             </div>
         </div>
     </div>
@@ -787,9 +954,50 @@
             return '其他设备';
         }
 
+        // ===== B1/B2 绑定与登录记录字段映射 =====
+        const BIND_TYPE_TEXT = { apk: '安卓 App', totp: '动态码', off: '管理员不限' };
+
+        function bindTypeText(type) {
+            return BIND_TYPE_TEXT[type] || '未绑定';
+        }
+
+        function deviceLabel(key) {
+            if (!key) return '—';
+            if (key.indexOf('apk:') === 0) return '安卓App';
+            if (key.indexOf('ua:') === 0) return '网页';
+            return '—';
+        }
+
+        function deviceCodeOf(key) {
+            if (key && key.indexOf('apk:') === 0) return key.slice(4) || '—';
+            return '—';
+        }
+
+        const LOG_REASON_TEXT = {
+            BAD_PASSWORD: '密码错误',
+            NO_USER: '账号不存在',
+            PENDING: '待审核',
+            DISABLED: '已停用',
+            NEED_APK: '非App登录',
+            DEVICE_MISMATCH: '设备不符',
+            TOTP_FAIL: '动态码错误',
+            TOTP_REPLAY: '验证码重复',
+            NEED_BIND: '未绑定',
+            BIND_TOTP_OK: '绑定成功',
+            BIND_TOTP_FAIL: '绑定失败'
+        };
+
+        function logResultText(log) {
+            if (log.ok === true) return '成功';
+            const r = log.reason;
+            if (!r) return '失败';
+            return LOG_REASON_TEXT[r] || r;
+        }
+
         window.switchTab = function(name) {
             document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + name));
+            if (name === 'invites') loadInvites();
         };
 
         function renderPending(users) {
@@ -857,6 +1065,10 @@
                             <span>登录次数：${u.login_count || 0}</span>
                             <span>最近登录：${formatDate(u.last_login)}</span>
                         </div>
+                        <div class="bind-line">
+                            <span>绑定设备：${escapeHtml(bindTypeText(u.bind_type))}</span>
+                            <span>设备码：${u.bind_type === 'apk' && u.device_id ? '<span class="device-code">' + escapeHtml(u.device_id) + '</span>' : '—'}</span>
+                        </div>
                         <div class="note-section">
                             <label>备注</label>
                             <div class="note-input-row">
@@ -866,6 +1078,7 @@
                         </div>
                         <div class="user-actions">
                             <button class="btn-manage" onclick="openEditUser('${u.id}')">✏️ 编辑</button>
+                            <button class="btn-manage" onclick="resetBind('${u.id}')">重置绑定</button>
                             <button class="btn-delete" onclick="deleteUser('${u.id}')">删除</button>
                         </div>
                     </div>
@@ -879,15 +1092,25 @@
                 el.innerHTML = '<div class="empty-tip">暂无登录记录</div>';
                 return;
             }
-            el.innerHTML = logs.slice(0, 100).map(l => `
+            el.innerHTML = logs.slice(0, 100).map(l => {
+                const dev = deviceLabel(l.device_key);
+                const devCode = deviceCodeOf(l.device_key);
+                const result = logResultText(l);
+                return `
                 <div class="log-item">
-                    <div>
-                        <span class="log-user">${l.username}</span>
-                        <span style="color:#aaa; margin-left:6px;">${shortUA(l.user_agent)}</span>
+                    <div class="log-line-top">
+                        <span class="log-user">${escapeHtml(l.username || '(未知)')}</span>
+                        <span class="log-result ${l.ok === true ? 'ok' : 'fail'}">${escapeHtml(result)}</span>
                     </div>
-                    <span class="log-time">${formatDate(l.login_time)}</span>
+                    <div class="log-fields">
+                        <span>登录时间：${escapeHtml(formatDate(l.login_time))}</span>
+                        <span>设备：${escapeHtml(dev)}</span>
+                        <span>设备码：${devCode === '—' ? '—' : '<span class="device-code">' + escapeHtml(devCode) + '</span>'}</span>
+                        <span>IP：${escapeHtml(l.ip || '—')}</span>
+                    </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         async function loadUsers() {
@@ -919,6 +1142,166 @@
             loadLogs();
             showToast('已刷新', 'success');
         };
+
+        // ===== B1 重置绑定（二次确认弹窗，沿用 modal 样式） =====
+        let pendingResetUser = null;
+        let confirmAction = null;
+
+        window.resetBind = function(uid) {
+            const u = allUsers.find(x => x.id === uid);
+            if (!u) return;
+            pendingResetUser = u;
+            document.getElementById('confirmTitle').textContent = '重置绑定';
+            document.getElementById('confirmMsg').textContent =
+                '确定要重置用户「' + u.username + '」的设备绑定吗？重置后该用户下次登录需重新绑定。';
+            confirmAction = doResetBind;
+            document.getElementById('confirmOverlay').classList.add('show');
+        };
+
+        window.closeConfirm = function() {
+            document.getElementById('confirmOverlay').classList.remove('show');
+            pendingResetUser = null;
+            confirmAction = null;
+        };
+
+        window.runConfirm = async function() {
+            const fn = confirmAction;
+            const btn = document.getElementById('confirmOkBtn');
+            if (!fn) { closeConfirm(); return; }
+            btn.disabled = true;
+            try {
+                await fn();
+            } finally {
+                btn.disabled = false;
+                closeConfirm();
+            }
+        };
+
+        async function doResetBind() {
+            const u = pendingResetUser;
+            if (!u) return;
+            try {
+                const { data, error } = await supabase.rpc('admin_bind_reset', {
+                    p_token: ADMIN_TOKEN,
+                    p_username: u.username
+                });
+                const res = asJson(data);
+                if (error) { showToast('重置失败：' + error.message, 'error'); return; }
+                if (res && res.error) { showToast(res.error, 'error'); return; }
+                if (res && res.ok) {
+                    showToast('已重置，该用户下次登录需重新绑定', 'success');
+                    await loadUsers();
+                } else {
+                    showToast('重置失败', 'error');
+                }
+            } catch (e) {
+                showToast('重置失败：' + e.message, 'error');
+            }
+        }
+
+        // ===== B2 登录记录已经用 deviceLabel / deviceCodeOf / logResultText 渲染 =====
+
+        // ===== B3 邀请码 =====
+        const INVITE_STATE_TEXT = { unused: '未使用', used: '已使用', expired: '已过期' };
+
+        window.genInvites = async function() {
+            const btn = document.getElementById('genInviteBtn');
+            const count = parseInt(document.getElementById('inviteCount').value, 10) || 1;
+            const note = document.getElementById('inviteNote').value.trim();
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+            try {
+                const { data, error } = await supabase.rpc('admin_gen_invite', {
+                    p_token: ADMIN_TOKEN,
+                    p_count: count,
+                    p_note: note
+                });
+                const res = asJson(data);
+                if (error) { showToast('生成失败：' + error.message, 'error'); return; }
+                if (res && res.error) { showToast(res.error, 'error'); return; }
+                if (res && res.ok) {
+                    renderGeneratedInvites(res.codes || []);
+                    showToast('已生成 ' + (res.codes || []).length + ' 个邀请码', 'success');
+                    await loadInvites();
+                } else {
+                    showToast('生成失败', 'error');
+                }
+            } catch (e) {
+                showToast('生成失败：' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '生成邀请码';
+            }
+        };
+
+        function renderGeneratedInvites(codes) {
+            const el = document.getElementById('inviteGenList');
+            if (!codes.length) { el.innerHTML = ''; return; }
+            el.innerHTML = codes.map(code => `
+                <div class="invite-gen-item">
+                    <span class="invite-code">${escapeHtml(code)}</span>
+                    <button class="invite-copy-btn" onclick="copyInviteCode('${escapeHtml(code)}')">复制</button>
+                </div>
+            `).join('');
+        }
+
+        window.copyInviteCode = function(code) {
+            const fallback = () => {
+                const ta = document.createElement('textarea');
+                ta.value = code;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                let ok = false;
+                try { ok = document.execCommand('copy'); } catch (e) { }
+                document.body.removeChild(ta);
+                showToast(ok ? '已复制邀请码' : '复制失败，请手动复制', ok ? 'success' : 'error');
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code)
+                    .then(() => showToast('已复制邀请码', 'success'))
+                    .catch(() => fallback());
+            } else {
+                fallback();
+            }
+        };
+
+        async function loadInvites() {
+            const el = document.getElementById('inviteList');
+            try {
+                const { data, error } = await supabase.rpc('admin_list_invites', { p_token: ADMIN_TOKEN });
+                const res = asJson(data);
+                if (error) { showToast('加载邀请码失败：' + error.message, 'error'); return; }
+                if (res && res.error) { showToast(res.error, 'error'); return; }
+                if (!res || !res.ok) { showToast('加载邀请码失败', 'error'); return; }
+                renderInvites(res.data || []);
+            } catch (e) {
+                showToast('加载邀请码失败：' + e.message, 'error');
+            }
+        }
+
+        function renderInvites(list) {
+            const el = document.getElementById('inviteList');
+            if (!list.length) {
+                el.innerHTML = '<div class="empty-tip">暂无邀请码</div>';
+                return;
+            }
+            el.innerHTML = list.map(item => `
+                <div class="invite-card">
+                    <div class="invite-card-top">
+                        <span class="invite-code">${escapeHtml(item.code || '')}</span>
+                        <span class="invite-state ${escapeHtml(item.state || 'unused')}">${INVITE_STATE_TEXT[item.state] || (item.state || '未知')}</span>
+                    </div>
+                    <div class="log-fields">
+                        <span>创建时间：${escapeHtml(formatDate(item.created_at))}</span>
+                        <span>过期时间：${escapeHtml(formatDate(item.expires_at))}</span>
+                        <span>使用者：${escapeHtml(item.used_by || '—')}</span>
+                        ${item.note ? '<span>备注：' + escapeHtml(item.note) + '</span>' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
 
         window.approveUser = async function(uid) {
             const res = await callAdminOp('update', uid, { status: 'approved' });

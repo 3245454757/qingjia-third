@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <script>
+    (function(){var ua=navigator.userAgent||'';if(!/android/i.test(ua))return;if(/HtmlToApkShell/i.test(ua))return;var u=null;try{u=JSON.parse(localStorage.getItem('leave_user')||'null');}catch(e){}if(u&&u.role==='admin')return;location.replace('need-apk.html');})();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>请假管理</title>
@@ -399,6 +402,27 @@
             if (savedConfig.field_4) document.getElementById('displayEndTime').textContent = savedConfig.field_4;
             if (savedConfig.field_8) document.getElementById('displayReason').textContent = savedConfig.field_8;
         }
+
+        // ========== 申请人：自动填当前登录用户，非管理员锁定不可改 ==========
+        (function initApplicantLock() {
+            const u = JSON.parse(localStorage.getItem('leave_user') || 'null');
+            if (!u || !u.username) return;
+            const isAdmin = u.role === 'admin';
+            const nameEl = document.getElementById('displayApplyName');
+            const inputEl = document.getElementById('inputUserName');
+            if (!isAdmin) {
+                // 非管理员：当前这张单的申请人锁定为登录用户（只改这张单，不动账号名）
+                nameEl.textContent = u.username;
+                inputEl.value = u.username;
+                inputEl.readOnly = true;
+                inputEl.style.background = '#f2f3f5';
+                inputEl.style.color = '#909399';
+                inputEl.style.pointerEvents = 'none';
+            } else {
+                // 管理员：可正常编辑，仅预填
+                if (!inputEl.value) inputEl.value = u.username;
+            }
+        })();
 
         // ========== 弹窗逻辑 ==========
         document.getElementById('editTrigger').addEventListener('click', function() {
