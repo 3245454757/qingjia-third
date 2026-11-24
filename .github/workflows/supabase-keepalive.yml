@@ -1,0 +1,26 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    - cron: '0 3 */3 * *'   # 每 3 天 03:00 UTC 一次
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    name: Ping Supabase REST endpoint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        shell: bash
+        run: |
+          URL="https://hqoeptonghttbqggpcwx.supabase.co/rest/v1/"
+          KEY="sb_publishable_ShrC-Qjx3-V_cfIcrYgqWw_HEp4pE_-"
+          code=$(curl -sS -o /tmp/resp.txt -w "%{http_code}" -H "apikey: $KEY" -H "Authorization: Bearer $KEY" "$URL" || echo "000")
+          echo "HTTP=$code"
+          head -c 300 /tmp/resp.txt || true
+          if [ "$code" -ge 400 ] && [ "$code" -ne 401 ] && [ "$code" -ne 403 ]; then echo "::error::keepalive 失败 HTTP=$code"; exit 1; fi
+
+# 用途：每 3 天向 Supabase 项目发一次请求，避免免费项目因 7 天无活动被自动暂停；401/403 视为成功（请求已到达 Supabase），仅 5xx/超时才失败。
