@@ -955,7 +955,7 @@
         }
 
         // ===== B1/B2 绑定与登录记录字段映射 =====
-        const BIND_TYPE_TEXT = { apk: '安卓 App', totp: '动态码', off: '管理员不限' };
+        const BIND_TYPE_TEXT = { apk: '安卓 App（设备码）', totp: 'iOS 动态码', off: '管理员不限' };
 
         function bindTypeText(type) {
             return BIND_TYPE_TEXT[type] || '未绑定';
@@ -963,8 +963,8 @@
 
         function deviceLabel(key) {
             if (!key) return '—';
-            if (key.indexOf('apk:') === 0) return '安卓App';
-            if (key.indexOf('ua:') === 0) return '网页';
+            if (key.indexOf('apk:') === 0) return '安卓 App';
+            if (key.indexOf('ua:') === 0) return '网页（iOS/电脑）';
             return '—';
         }
 
@@ -1067,7 +1067,7 @@
                         </div>
                         <div class="bind-line">
                             <span>绑定设备：${escapeHtml(bindTypeText(u.bind_type))}</span>
-                            <span>设备码：${u.bind_type === 'apk' && u.device_id ? '<span class="device-code">' + escapeHtml(u.device_id) + '</span>' : '—'}</span>
+                            <span>安卓设备码：${u.bind_type === 'apk' && u.device_id ? '<span class="device-code">' + escapeHtml(u.device_id) + '</span>' : '—'}</span>
                         </div>
                         <div class="note-section">
                             <label>备注</label>
@@ -1105,7 +1105,7 @@
                     <div class="log-fields">
                         <span>登录时间：${escapeHtml(formatDate(l.login_time))}</span>
                         <span>设备：${escapeHtml(dev)}</span>
-                        <span>设备码：${devCode === '—' ? '—' : '<span class="device-code">' + escapeHtml(devCode) + '</span>'}</span>
+                        <span>安卓设备码：${devCode === '—' ? '—' : '<span class="device-code">' + escapeHtml(devCode) + '</span>'}</span>
                         <span>IP：${escapeHtml(l.ip || '—')}</span>
                     </div>
                 </div>
