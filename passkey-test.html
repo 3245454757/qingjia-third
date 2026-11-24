@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Passkey 支持检测</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px 14px 40px;
+    background: #f5f7fa;
+    color: #2c3138;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+  h1 {
+    margin: 8px 0 16px;
+    font-size: 20px;
+    line-height: 1.3;
+    font-weight: 600;
+    color: #1b1f24;
+    text-align: center;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+    padding: 6px 14px;
+    margin-bottom: 14px;
+  }
+  .row { padding: 10px 0; border-bottom: 1px solid #eef0f3; }
+  .row:last-child { border-bottom: 0; }
+  .row-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .name { font-weight: 600; font-size: 13px; color: #444a52; }
+  .tag {
+    flex: none;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: .3px;
+  }
+  .tag-wait { background: #f0f2f5; color: #9aa0a6; }
+  .tag-pass { background: #e6f5ec; color: #1e9e5a; }
+  .tag-fail { background: #fdeaea; color: #d93026; }
+  .tag-err  { background: #fff4e5; color: #c77700; }
+  .detail {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #6b7280;
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+  .detail.err { color: #d93026; }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 13px;
+    margin: 4px 0 14px;
+    border: 0;
+    border-radius: 10px;
+    background: #5a9cf5;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+  }
+  .btn:disabled { background: #b9cef2; }
+  .foot {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #9aa0a6;
+    text-align: center;
+    line-height: 1.6;
+  }
+  h2 {
+    margin: 6px 0 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444a52;
+  }
+</style>
+</head>
+<body>
+
+<h1>Passkey 支持检测</h1>
+
+<h2>环境检测</h2>
+<div class="card" id="envList"></div>
+
+<button class="btn" id="startBtn">开始测试（会弹出 Face ID / 指纹）</button>
+
+<h2>创建凭据实测</h2>
+<div class="card" id="createList"></div>
+
+<div class="foot">在 iPhone 企微里打开本页，点开始测试，截全屏图发回</div>
+
+<script>
+(function () {
+  var envList = document.getElementById('envList');
+  var createList = document.getElementById('createList');
+  var startBtn = document.getElementById('startBtn');
+
+  function row(container, name, state, detail) {
+    var wrap = document.createElement('div');
+    wrap.className = 'row';
+
+    var head = document.createElement('div');
+    head.className = 'row-head';
+
+    var n = document.createElement('span');
+    n.className = 'name';
+    n.textContent = name;
+
+    var tag = document.createElement('span');
+    tag.className = 'tag ' + (state === 'PASS' ? 'tag-pass' : state === 'FAIL' ? 'tag-fail' : state === 'WAIT' ? 'tag-wait' : 'tag-err');
+    tag.textContent = state;
+
+    head.appendChild(n);
+    head.appendChild(tag);
+    wrap.appendChild(head);
+
+    var d = document.createElement('div');
+    d.className = 'detail' + (state === 'FAIL' || state === 'ERROR' ? ' err' : '');
+    d.textContent = detail;
+    wrap.appendChild(d);
+
+    container.appendChild(wrap);
+    return wrap;
+  }
+
+  // a. https
+  row(envList, 'a. 当前地址是否 HTTPS', location.protocol === 'https:' ? 'PASS' : 'FAIL',
+      'location.protocol = ' + location.protocol + '\n' + location.href);
+
+  // b. navigator.credentials
+  if (navigator.credentials) {
+    row(envList, 'b. navigator.credentials', 'PASS', '存在（支持 Web Credentials API）');
+  } else {
+    row(envList, 'b. navigator.credentials', 'FAIL', '不存在，凭据 API 完全不可用');
+  }
+
+  // c. window.PublicKeyCredential
+  var hasPK = typeof window.PublicKeyCredential !== 'undefined';
+  if (hasPK) {
+    row(envList, 'c. window.PublicKeyCredential', 'PASS', '存在（支持 WebAuthn）');
+  } else {
+    row(envList, 'c. window.PublicKeyCredential', 'FAIL', '不存在，WebAuthn 不可用');
+  }
+
+  // d. isUserVerifyingPlatformAuthenticatorAvailable
+  if (hasPK && typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+    var wd = row(envList, 'd. 平台认证器可用性 UVPA', 'WAIT', '检测中…');
+    var dDetail = wd.querySelector('.detail');
+    var dTag = wd.querySelector('.tag');
+    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function (v) {
+      dTag.className = 'tag ' + (v ? 'tag-pass' : 'tag-fail');
+      dTag.textContent = v ? 'PASS' : 'FAIL';
+      dDetail.className = 'detail' + (v ? '' : ' err');
+      dDetail.textContent = 'isUserVerifyingPlatformAuthenticatorAvailable() = ' + v +
+        (v ? '\n有可用的平台认证器（Face ID / 指纹）' : '\n没有可用的平台认证器，创建 Passkey 会失败');
+    }).catch(function (e) {
+      dTag.className = 'tag tag-err';
+      dTag.textContent = 'ERROR';
+      dDetail.className = 'detail err';
+      dDetail.textContent = '调用异常：' + (e && e.name) + ' : ' + (e && e.message);
+    });
+  } else if (hasPK) {
+    row(envList, 'd. 平台认证器可用性 UVPA', 'ERROR', '无此方法（isUserVerifyingPlatformAuthenticatorAvailable 不存在）');
+  } else {
+    row(envList, 'd. 平台认证器可用性 UVPA', 'FAIL', '无法检测：PublicKeyCredential 不存在');
+  }
+
+  // e. isConditionalMediationAvailable
+  if (hasPK && typeof PublicKeyCredential.isConditionalMediationAvailable === 'function') {
+    var we = row(envList, 'e. 条件中介 isConditionalMediationAvailable', 'WAIT', '检测中…');
+    var eDetail = we.querySelector('.detail');
+    var eTag = we.querySelector('.tag');
+    PublicKeyCredential.isConditionalMediationAvailable().then(function (v) {
+      eTag.className = 'tag ' + (v ? 'tag-pass' : 'tag-fail');
+      eTag.textContent = v ? 'PASS' : 'FAIL';
+      eDetail.className = 'detail' + (v ? '' : ' err');
+      eDetail.textContent = 'isConditionalMediationAvailable() = ' + v;
+    }).catch(function (e) {
+      eTag.className = 'tag tag-err';
+      eTag.textContent = 'ERROR';
+      eDetail.className = 'detail err';
+      eDetail.textContent = '调用异常：' + (e && e.name) + ' : ' + (e && e.message);
+    });
+  } else if (hasPK) {
+    row(envList, 'e. 条件中介 isConditionalMediationAvailable', 'ERROR', '无此方法（不支持 conditional mediation）');
+  } else {
+    row(envList, 'e. 条件中介 isConditionalMediationAvailable', 'FAIL', '无法检测：PublicKeyCredential 不存在');
+  }
+
+  // g. UA 放最后
+  row(envList, 'g. navigator.userAgent', /wxwork/i.test(navigator.userAgent) ? 'PASS' : 'INFO',
+      navigator.userAgent + (navigator.userAgent.indexOf('wxwork') > -1 ? '\n（含 wxwork，判定为企业微信浏览器）' : '\n（不含 wxwork，不是企微浏览器）'));
+
+  // f. 真实创建凭据
+  var createRow = null;
+  function showCreate(state, detail) {
+    if (!createRow) {
+      createRow = row(createList, 'f. navigator.credentials.create()', state, detail);
+    } else {
+      var tag = createRow.querySelector('.tag');
+      tag.className = 'tag ' + (state === 'PASS' ? 'tag-pass' : state === 'FAIL' ? 'tag-fail' : state === 'WAIT' ? 'tag-wait' : 'tag-err');
+      tag.textContent = state;
+      var dd = createRow.querySelector('.detail');
+      dd.className = 'detail' + (state === 'FAIL' || state === 'ERROR' ? ' err' : '');
+      dd.textContent = detail;
+    }
+  }
+
+  row(createList, 'f. navigator.credentials.create()', 'WAIT', '未开始，点上方「开始测试」按钮后执行');
+  createRow = createList.querySelector('.row');
+
+  function randBytes(n) {
+    var arr = new Uint8Array(n);
+    if (window.crypto && crypto.getRandomValues) {
+      crypto.getRandomValues(arr);
+    } else {
+      for (var i = 0; i < n; i++) { arr[i] = Math.floor(Math.random() * 256); }
+    }
+    return arr;
+  }
+
+  startBtn.addEventListener('click', function () {
+    if (!navigator.credentials || typeof navigator.credentials.create !== 'function') {
+      showCreate('FAIL', 'navigator.credentials.create 不可用，无法发起创建');
+      return;
+    }
+    startBtn.disabled = true;
+    showCreate('WAIT', '等待系统弹窗与用户确认…（timeout 60s）');
+    var challenge = randBytes(32);
+    var userId = randBytes(16);
+    navigator.credentials.create({
+      publicKey: {
+        challenge: challenge,
+        rp: { name: 'QJ', id: location.hostname },
+        user: { id: userId, name: 'probe@test', displayName: 'probe' },
+        pubKeyCredParams: [
+          { type: 'public-key', alg: -7 },
+          { type: 'public-key', alg: -257 }
+        ],
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          userVerification: 'required'
+        },
+        timeout: 60000
+      }
+    }).then(function (cred) {
+      var id = cred && cred.id ? cred.id : '(无 id)';
+      showCreate('PASS', '创建成功\ncredential.id(前16位) = ' + id.slice(0, 16) +
+        '\n完整 id 长度 = ' + id.length +
+        '\ncredential.type = ' + (cred && cred.type));
+      startBtn.disabled = false;
+    }).catch(function (err) {
+      var name = (err && err.name) || 'UnknownError';
+      var msg = (err && err.message) || String(err);
+      var hint = '';
+      if (name === 'NotAllowedError') hint = '\n提示：用户取消/超时/无可用认证器，企微内可能禁用了 Passkey';
+      else if (name === 'NotSupportedError') hint = '\n提示：当前环境不支持该算法或平台认证器';
+      else if (name === 'SecurityError') hint = '\n提示：RP ID 与当前域名不匹配，或非安全上下文（需 https）';
+      else if (name === 'InvalidStateError') hint = '\n提示：该用户已存在同一平台的 Passkey 凭据';
+      else if (name === 'ConstraintError') hint = '\n提示：约束条件（platform / userVerification required）无法满足';
+      showCreate('FAIL', name + ' : ' + msg + hint);
+      startBtn.disabled = false;
+    });
+  });
+})();
+</script>
+</body>
+</html>
