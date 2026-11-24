@@ -461,5 +461,18 @@
             setTimeout(() => toast.classList.remove('show'), 1500);
         }
     </script>
+    <!-- 系统返回手势/返回键：固定层级跳转（不依赖浏览器历史） -->
+    <script>
+    (function () {
+        var PARENT = 'list.html';
+        var jumping = false;
+        try { history.pushState({ qjLayer: 1 }, '', location.href); } catch (e) { }
+        window.addEventListener('popstate', function () {
+            if (jumping) return;
+            jumping = true;
+            location.replace(PARENT);
+        });
+    })();
+    </script>
 </body>
 </html>
