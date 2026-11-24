@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>管理后台</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -516,6 +516,7 @@
             </div>
             <div class="header-right">
                 <span class="admin-name" id="adminName"></span>
+                <button class="logout-btn" onclick="location.href='home.html'">返回工作台</button>
                 <button class="logout-btn" onclick="refreshData()">刷新</button>
                 <button class="logout-btn" onclick="handleLogout()">退出</button>
             </div>

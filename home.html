@@ -3,7 +3,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>工作台</title>
   <style>
     body {
@@ -175,8 +175,32 @@
       pointer-events: none;
     }
   </style>
+<!-- 自绘顶部导航栏（APK/独立浏览器用；企业微信内会与原生导航栏重复） -->
+  <style>
+    .app-topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      height: calc(44px + env(safe-area-inset-top));
+      padding-top: env(safe-area-inset-top);
+      box-sizing: border-box;
+      display: flex; align-items: center; justify-content: center;
+      background: #fff; border-bottom: 1px solid #eee;
+    }
+    .app-topbar .topbar-back {
+      position: absolute; left: 0; top: env(safe-area-inset-top);
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      color: #333; text-decoration: none;
+    }
+    .app-topbar .topbar-back svg { width: 22px; height: 22px; display: block; }
+    .app-topbar .topbar-title { font-size: 16px; font-weight: 500; color: #333; line-height: 1; }
+    body { padding-top: calc(44px + env(safe-area-inset-top)); }
+  </style>
 </head>
 <body>
+  <header class="app-topbar">
+    <div class="topbar-title">工作台</div>
+  </header>
+  <script>if(/wxwork/i.test(navigator.userAgent)){document.body.style.paddingTop='0';var tb=document.querySelector('.app-topbar');if(tb)tb.style.display='none';}</script>
   <div id="loading-mask">
     <img src="load.gif" alt="加载中">
     <p id="loading-text">加载中...</p>
@@ -270,7 +294,7 @@
 
   <!-- e. 底部工具栏 -->
   <div class="footer">
-    <a href="#" class="footer-item">
+    <a href="#" id="tab-msg" class="footer-item">
       <div class="footer-icon"><img src="icons/icon-tab-xiaoxi.png" alt="" /></div>
       <span>消息</span>
     </a>
@@ -286,7 +310,7 @@
       <div class="footer-icon"><img src="icons/icon-tab-gongzuotai.png" alt="" /></div>
       <span>工作台</span>
     </a>
-    <a href="#" class="footer-item">
+    <a href="#" id="tab-me" class="footer-item">
       <div class="footer-icon"><img src="icons/icon-tab-wo.png" alt="" class="footer-icon-sm" /></div>
       <span>我</span>
     </a>
@@ -312,6 +336,43 @@
       }
       Promise.race([Promise.all(loads), timeout]).then(hide);
       setTimeout(hide, 3500); /* 兜底：确保遮罩必然消失 */
+    })();
+  </script>
+  <script>
+    /* 底部 Tab 行为：消息=退出确认；我=管理员判断（判定规则与 admin.html 一致：leave_user.role === 'admin'） */
+    (function () {
+      function toast(msg) {
+        var t = document.createElement('div');
+        t.textContent = msg;
+        t.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);' +
+          'background:rgba(0,0,0,.75);color:#fff;font-size:13px;line-height:1;padding:10px 16px;' +
+          'border-radius:8px;z-index:10000;white-space:nowrap;transition:opacity .3s';
+        document.body.appendChild(t);
+        setTimeout(function () { t.style.opacity = '0'; setTimeout(function () { if (t.parentNode) t.remove(); }, 320); }, 1600);
+      }
+      function logout() {
+        localStorage.removeItem('leave_user');
+        localStorage.removeItem('leave_token');
+        localStorage.removeItem('leaveConfig');
+        window.location.href = 'login.html';
+      }
+      var msgTab = document.getElementById('tab-msg');
+      if (msgTab) msgTab.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (confirm('是否退出登录？')) logout();
+      });
+      var meTab = document.getElementById('tab-me');
+      if (meTab) meTab.addEventListener('click', function (e) {
+        e.preventDefault();
+        var u = null;
+        try { u = JSON.parse(localStorage.getItem('leave_user') || 'null'); } catch (err) { u = null; }
+        if (!u) { toast('请先登录'); return; }
+        if (u.role === 'admin') {
+          if (confirm('是否进入后台管理？')) window.location.href = 'admin.html';
+        } else {
+          toast('当前账号无后台管理权限');
+        }
+      });
     })();
   </script>
 </body>

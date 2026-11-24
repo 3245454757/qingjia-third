@@ -4,10 +4,35 @@
 	
 	
 	<title>掌上校园</title>
-	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0, viewport-fit=cover">
 	<link rel="stylesheet" href="./workshop_files/style.css">
+<!-- 自绘顶部导航栏（APK/独立浏览器用；企业微信内会与原生导航栏重复） -->
+	<style>
+		.app-topbar {
+			position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+			height: calc(44px + env(safe-area-inset-top));
+			padding-top: env(safe-area-inset-top);
+			box-sizing: border-box;
+			display: flex; align-items: center; justify-content: center;
+			background: #fff; border-bottom: 1px solid #eee;
+		}
+		.app-topbar .topbar-back {
+			position: absolute; left: 0; top: env(safe-area-inset-top);
+			width: 44px; height: 44px;
+			display: flex; align-items: center; justify-content: center;
+			color: #333; text-decoration: none;
+		}
+		.app-topbar .topbar-back svg { width: 22px; height: 22px; display: block; }
+		.app-topbar .topbar-title { font-size: 16px; font-weight: 500; color: #333; line-height: 1; }
+		body { padding-top: calc(44px + env(safe-area-inset-top)); }
+	</style>
 </head>
 <body>
+	<header class="app-topbar">
+		<a class="topbar-back" href="list.html" aria-label="返回" onclick="if(history.length>1){history.back();return false;}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></a>
+		<div class="topbar-title">掌上校园</div>
+	</header>
+	<script>if(/wxwork/i.test(navigator.userAgent)){document.body.style.paddingTop='0';var tb=document.querySelector('.app-topbar');if(tb)tb.style.display='none';}</script>
 	<div class="app_container">
 		<input type="hidden" id="zsxyCategoryExtend" value="1">
 		<div class="banner">

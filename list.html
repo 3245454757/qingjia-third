@@ -9,11 +9,11 @@
 	<meta content="telephone=no,email=no" name="format-detection">
 	<meta name="format-detection" content="telephone=no,email=no">
 	<meta name="renderer" content="webkit|ie-comp|ie-stand">
-	<meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1">
+	<meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1, viewport-fit=cover">
 	<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 	<meta http-equiv="Pragma" content="no-cache">
 	<meta http-equiv="Expires" content="0">
-	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no, viewport-fit=cover">
 	<script>
 		var win = window;
 		            window.vl = function(baseFontSize, psdWidth, maxWidth) {
@@ -87,8 +87,33 @@
 	<style>
 		a:not(.item-link) { pointer-events: none; cursor: default; }
 	</style>
+<!-- 自绘顶部导航栏（APK/独立浏览器用；企业微信内会与原生导航栏重复） -->
+<style>
+  .app-topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    height: calc(44px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    box-sizing: border-box;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff; border-bottom: 1px solid #eee;
+  }
+  .app-topbar .topbar-back {
+    position: absolute; left: 0; top: env(safe-area-inset-top);
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    color: #333; text-decoration: none;
+  }
+  .app-topbar .topbar-back svg { width: 22px; height: 22px; display: block; }
+  .app-topbar .topbar-title { font-size: 16px; font-weight: 500; color: #333; line-height: 1; }
+  body { padding-top: calc(44px + env(safe-area-inset-top)); }
+</style>
 </head>
 <body>
+<header class="app-topbar">
+  <a class="topbar-back" href="home.html" aria-label="返回"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></a>
+  <div class="topbar-title">请假管理</div>
+</header>
+<script>if(/wxwork/i.test(navigator.userAgent)){document.body.style.paddingTop='0';var tb=document.querySelector('.app-topbar');if(tb)tb.style.display='none';var bc=document.querySelector('.page_basic_position_fixed___1BROP');if(bc)bc.style.top='0';}</script>
 	<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="__ANTD_MOBILE_SVG_SPRITE_NODE__" style="display:none;overflow:hidden;width:0;height:0">
 		<defs>
 			<symbol id="check" viewBox="0 0 44 44">
@@ -543,4 +568,8 @@
 			} catch (e) { }
 		})();
 	</script>
+<style>
+  /* 面包屑原为 position:fixed; top:0，会被自绘顶栏压住 → 下移到顶栏（44px + 安全区）下方，与父容器预留的 46.8px 空间刚好吻合 */
+  .page_basic_position_fixed___1BROP { top: calc(44px + env(safe-area-inset-top)) !important; }
+</style>
 </body></html>
