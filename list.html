@@ -569,8 +569,18 @@
 			} catch (e) { }
 		})();
 	</script>
+<!-- 面包屑顶部偏移改为 CSS 变量驱动：由脚本按「顶栏是否真的可见」改写 --topbar-h -->
 <style>
-  /* 面包屑原为 position:fixed; top:0，会被自绘顶栏压住 → 下移到顶栏（44px + 安全区）下方，与父容器预留的 46.8px 空间刚好吻合 */
-  .page_basic_position_fixed___1BROP { top: calc(44px + env(safe-area-inset-top)) !important; }
+  :root { --topbar-h: calc(44px + env(safe-area-inset-top)); }
+  .page_basic_position_fixed___1BROP { top: var(--topbar-h) !important; }
 </style>
+<script>
+(function () {
+  var tb = document.querySelector('.app-topbar');
+  var visible = tb && getComputedStyle(tb).display !== 'none';
+  var h = visible ? 'calc(44px + env(safe-area-inset-top))' : '0px';
+  document.documentElement.style.setProperty('--topbar-h', h);
+  document.body.style.paddingTop = visible ? 'calc(44px + env(safe-area-inset-top))' : '0';
+})();
+</script>
 </body></html>
