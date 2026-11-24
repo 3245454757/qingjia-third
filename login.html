@@ -255,7 +255,7 @@
                         <label for="totpCode">动态验证码</label>
                         <input type="text" id="totpCode" inputmode="numeric" maxlength="6" placeholder="6 位动态码（「密码」App 查看）" autocomplete="one-time-code">
                     </div>
-                    <div class="hint">在手机「密码」App 里找到「请假系统」的验证码。没看到输入框？<a href="javascript:;" id="totpShowLink" class="hint-link">点这里展开</a></div>
+                    <div class="hint" id="totpHint" style="display:none">iOS 用户：请在手机「密码」App 里找到「请假系统」的 6 位验证码填入。没看到输入框？<a href="javascript:;" id="totpShowLink" class="hint-link">点这里展开</a></div>
                 </div>
                 <button class="login-btn" id="loginBtn" onclick="handleLogin()">登录</button>
                 <div class="links">
@@ -455,6 +455,16 @@
                     return;
                 }
 
+                // 已绑定过动态码但没填码：不报"动态码错误"，明确让他去密码 App 找码
+                if (dataRes && dataRes.code === 'TOTP_FAIL' && !totpCode) {
+                    document.getElementById('totpRow').style.display = '';
+                    document.getElementById('totpHint').style.display = '';
+                    var ti = document.getElementById('totpCode');
+                    if (ti && ti.focus) ti.focus();
+                    showToast('请输入手机「密码」App 里的 6 位动态码（找不到就是换过手机，请让管理员重置绑定）');
+                    return;
+                }
+
                 // 其它情况：后端 error 是中文，直接显示
                 const msg = (dataRes && dataRes.error) || (rpcError && rpcError.message) || '登录失败';
                 showToast(msg);
@@ -483,13 +493,15 @@
         });
 
         // 动态验证码那一组：默认隐藏，只有 iPhone / iPad / iPod 显示（安卓 App、安卓网页、电脑都不显示）
-        if (!/iPhone|iPad|iPod/i.test(navigator.userAgent)) document.getElementById('totpRow').style.display = 'none';
-        else document.getElementById('totpRow').style.display = '';
+        var qjIsIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        document.getElementById('totpRow').style.display = qjIsIOS ? '' : 'none';
+        document.getElementById('totpHint').style.display = qjIsIOS ? '' : 'none';
 
         // 兜底：UA 判断失灵时点「点这里展开」强制显示
         document.getElementById('totpShowLink').addEventListener('click', function (e) {
             e.preventDefault();
             document.getElementById('totpRow').style.display = '';
+            document.getElementById('totpHint').style.display = '';
             var input = document.getElementById('totpCode');
             if (input && input.focus) input.focus();
         });
