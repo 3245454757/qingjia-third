@@ -127,6 +127,20 @@
         body { padding-top: calc(44px + env(safe-area-inset-top)); }
     </style>
 <base target="_blank">
+    <!-- B1 竖屏遮罩：横屏时提示竖着拿手机 -->
+    <script>
+    (function(){function qjRot(){var w=window.innerWidth,h=window.innerHeight,m=document.getElementById('qjRotateMask');
+    if(w>h){if(!m){m=document.createElement('div');m.id='qjRotateMask';
+    m.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:99999;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;color:#333;font-size:15px;';
+    m.innerHTML='<div style="font-size:44px;line-height:1">📱</div><div>请竖着拿手机使用</div>';document.body.appendChild(m);}}
+    else if(m){m.parentNode.removeChild(m);}}
+    window.addEventListener('resize',qjRot);window.addEventListener('orientationchange',function(){setTimeout(qjRot,120)});document.addEventListener('DOMContentLoaded',qjRot);})();
+    </script>
+    <!-- B2 系统返回键固定跳转 -->
+    <script>
+    (function(){var QJ_UP='list.html';try{history.pushState({qjBack:1},'',location.href);}catch(e){}
+    window.addEventListener('popstate',function(){location.replace(QJ_UP);});})();
+    </script>
 </head>
 <body>
     <header class="app-topbar">

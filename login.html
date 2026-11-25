@@ -224,6 +224,15 @@
 
         .toast.success::before { content: '✓'; background: #2ecc71; }
     </style>
+    <!-- B1 竖屏遮罩：横屏时提示竖着拿手机 -->
+    <script>
+    (function(){function qjRot(){var w=window.innerWidth,h=window.innerHeight,m=document.getElementById('qjRotateMask');
+    if(w>h){if(!m){m=document.createElement('div');m.id='qjRotateMask';
+    m.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:99999;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;color:#333;font-size:15px;';
+    m.innerHTML='<div style="font-size:44px;line-height:1">📱</div><div>请竖着拿手机使用</div>';document.body.appendChild(m);}}
+    else if(m){m.parentNode.removeChild(m);}}
+    window.addEventListener('resize',qjRot);window.addEventListener('orientationchange',function(){setTimeout(qjRot,120)});document.addEventListener('DOMContentLoaded',qjRot);})();
+    </script>
 </head>
 <body>
     <div class="container">
@@ -271,7 +280,7 @@
                     <span class="bind-secret" id="bindSecret"></span>
                     <button type="button" class="copy-btn" onclick="copySecret()">复制</button>
                 </div>
-                <div class="bind-tip">① 打开手机的「密码」App →「+」→ 添加验证码 → 输入设置密钥 → 粘贴上面这串字符（名称填 请假系统）；② 稍等片刻会出现一个 6 位数，把它填到下面确认</div>
+                <div class="bind-tip">① 复制下面的密钥　② 打开手机「密码」App → 右上角 ＋ → 新建密码 → 选「验证码」类别　③ 粘贴密钥，标题填「请假系统」，保存　④ 等下一条验证码出现，在下面输入后确认</div>
                 <div class="form-group">
                     <label for="bindCode">6 位验证码</label>
                     <input type="text" id="bindCode" inputmode="numeric" maxlength="6" placeholder="请输入 6 位动态码" autocomplete="one-time-code">
@@ -425,6 +434,13 @@
                 return;
             }
 
+            // 设备号被系统隐私保护遮挡（全 0 或连续 8 位同一字符）时拦下
+            const deviceId = qjAndroidId();
+            if (deviceId && (/^[0]+$/.test(deviceId) || /^(.)\1{7,}$/.test(deviceId))) {
+                showToast('检测到设备标识被系统隐私保护遮挡，请在手机设置中关闭「空白通行证 / 隐私保护」后重试');
+                return;
+            }
+
             btn.disabled = true;
             btn.textContent = '登录中...';
 
@@ -434,7 +450,7 @@
                     p_username: username,
                     p_password: password,
                     p_user_agent: navigator.userAgent,
-                    p_device_id: qjAndroidId(),
+                    p_device_id: deviceId,
                     p_totp_code: totpCode || null
                 });
                 const dataRes = (data && typeof data === 'object') ? data : null;
