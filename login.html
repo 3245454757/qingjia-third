@@ -15,7 +15,7 @@
       function show(v, appver){
         var gate = document.getElementById('verGate');
         if (!gate) return false;                          // 遮罩还没解析出来，交给 DOMContentLoaded 再试
-        var url = v.apk_url || 'https://3245454757.github.io/qingjia-download/qingjia.apk';
+        var url = v.apk_url || 'https://3245454757.github.io/qingjia-download/';
         document.getElementById('verGateText').textContent =
           '当前版本 ' + (appver || '未知（旧版）') + '，最新版本 ' + v.apk_version + '。请更新后继续使用。';
         var btn = document.getElementById('verGateBtn'); btn.href = url;
@@ -477,7 +477,7 @@
         <div style="max-width:380px;margin:12vh auto 0;background:#fff;border-radius:16px;padding:22px;text-align:center;">
             <div style="font-size:18px;font-weight:600;color:#333;">请更新后使用</div>
             <div id="verGateText" style="font-size:14px;color:#666;line-height:1.7;margin:12px 0 18px;"></div>
-            <a id="verGateBtn" href="https://3245454757.github.io/qingjia-download/qingjia.apk" target="_blank" rel="noopener"
+            <a id="verGateBtn" href="https://3245454757.github.io/qingjia-download/" target="_blank" rel="noopener"
                style="display:block;height:46px;line-height:46px;background:#5a9cf5;color:#fff;border-radius:10px;text-decoration:none;font-size:16px;">立即更新</a>
             <div style="font-size:12px;color:#999;margin-top:12px;line-height:1.6;">点按钮没反应的话，把下面链接复制到手机浏览器打开：<br><span id="verGateLink" style="color:#5a9cf5;word-break:break-all;"></span></div>
         </div>
