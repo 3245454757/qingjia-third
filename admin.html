@@ -80,10 +80,14 @@
 
         .logout-btn:hover { background: #e6e9ee; }
 
+        /* A5 页签吸顶：top 取顶部固定栏 .header 的实测高度（--tabs-top，避免被 header 压住） */
         .tabs {
             display: flex;
             background: #fff;
             border-bottom: 1px solid #eee;
+            position: sticky;
+            top: var(--tabs-top, 0px);
+            z-index: 9;
         }
 
         .tab {
@@ -171,6 +175,7 @@
         .status-pending { background: #fef3e2; color: #f39c12; }
         .status-approved { background: #e8f8ef; color: #27ae60; }
         .status-rejected { background: #fdeaea; color: #e74c3c; }
+        .status-disabled { background: #eef0f3; color: #909399; }
 
         .invite-tag {
             font-size: 12px;
@@ -439,6 +444,77 @@
         .invite-state.unused { background: #e8f3fe; color: #2b7fd4; }
         .invite-state.used { background: #e8f8ef; color: #27ae60; }
         .invite-state.expired { background: #f2f3f5; color: #9aa0a6; }
+
+        /* ===== A8 暂停/恢复 按钮 ===== */
+        .btn-status {
+            flex: 1;
+            padding: 8px;
+            background: #fff;
+            color: #f39c12;
+            border: 1px solid #f39c12;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .btn-status:hover { background: #fef3e2; }
+        .btn-status.resume { color: #27ae60; border-color: #27ae60; }
+        .btn-status.resume:hover { background: #e8f8ef; }
+
+        /* ===== A2 复制全部码 ===== */
+        .copy-all-btn {
+            padding: 7px 14px;
+            margin-bottom: 10px;
+            border: 1px solid #cfe0fb;
+            border-radius: 8px;
+            background: #fff;
+            color: #5a9cf5;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .copy-all-btn:hover { background: #f2f7ff; }
+
+        /* ===== A6 操作记录 ===== */
+        .op-item {
+            background: #fff;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            font-size: 13px;
+        }
+
+        .op-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .op-action { font-size: 13px; font-weight: 600; color: #333; }
+        .op-target { font-size: 12px; font-weight: 500; color: #5a9cf5; margin-left: 8px; }
+        .op-time { flex: none; font-size: 11px; color: #aaa; }
+
+        .op-fields {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 4px 14px;
+            font-size: 11px;
+            color: #9aa0a6;
+            line-height: 1.7;
+        }
+
+        .op-ip {
+            margin-left: auto;
+            color: #c0c4cc;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            word-break: break-all;
+        }
 
         .toast {
             position: fixed;
@@ -775,6 +851,7 @@
             <div class="tab" data-tab="users" onclick="switchTab('users')">全部用户 <span id="approvedCount">0</span>/<span id="totalUsers">0</span></div>
             <div class="tab" data-tab="logs" onclick="switchTab('logs')">登录日志</div>
             <div class="tab" data-tab="invites" onclick="switchTab('invites')">邀请码</div>
+            <div class="tab" data-tab="ops" onclick="switchTab('ops')">操作记录</div>
         </div>
 
         <div class="tab-content active" id="tab-pending">
@@ -783,12 +860,24 @@
 
         <div class="tab-content" id="tab-users">
             <div class="toolbar">
-                <input class="search-input" id="userSearch" placeholder="🔍 搜索用户名/邀请人/备注..." oninput="onSearchInput(this.value)">
+                <input class="search-input" id="userSearch" placeholder="🔍 搜索用户名/设备码/状态/备注..." oninput="onSearchInput(this.value)">
                 <select class="filter-select" id="statusFilter" onchange="onFilterChange(this.value)">
                     <option value="all">全部状态</option>
-                    <option value="approved">已通过</option>
+                    <option value="approved">已启用</option>
                     <option value="pending">待审核</option>
+                    <option value="disabled">已暂停</option>
                     <option value="rejected">已驳回</option>
+                </select>
+                <select class="filter-select" id="bindFilter" onchange="onBindFilterChange(this.value)">
+                    <option value="all">全部绑定</option>
+                    <option value="apk">安卓 App</option>
+                    <option value="totp">iOS 动态码</option>
+                    <option value="off">管理员不限</option>
+                    <option value="none">未绑定</option>
+                </select>
+                <select class="filter-select" id="sortBy" onchange="onSortChange(this.value)">
+                    <option value="last">最近登录</option>
+                    <option value="created">注册时间</option>
                 </select>
                 <button class="btn-add-user" onclick="openCreateUser()">＋ 新增用户</button>
             </div>
@@ -805,13 +894,12 @@
 
         <div class="tab-content" id="tab-invites">
             <div class="invite-toolbar">
-                <select id="inviteCount">
-                    <option value="1">1 个</option>
-                    <option value="5" selected>5 个</option>
-                    <option value="10">10 个</option>
-                </select>
+                <input type="number" id="inviteCount" min="1" max="20" value="1" style="width:88px;">
                 <input type="text" id="inviteNote" placeholder="备注（可空，如：给某某同学）" maxlength="40">
                 <button id="genInviteBtn" onclick="genInvites()">生成邀请码</button>
+            </div>
+            <div id="inviteGenActions" style="display:none">
+                <button class="copy-all-btn" onclick="copyAllInvites()">📋 复制全部码</button>
             </div>
             <div class="invite-gen-list" id="inviteGenList"></div>
             <div class="section-header">
@@ -819,6 +907,14 @@
                 <button class="export-btn" onclick="loadInvites()">刷新</button>
             </div>
             <div id="inviteList"></div>
+        </div>
+
+        <div class="tab-content" id="tab-ops">
+            <div class="section-header">
+                <span class="section-title">管理员操作记录</span>
+                <button class="export-btn" onclick="loadOpsLogs()">刷新</button>
+            </div>
+            <div id="opList"></div>
         </div>
     </div>
 
@@ -844,8 +940,9 @@
             <div class="form-group">
                 <label>状态</label>
                 <select id="mStatus">
-                    <option value="approved">已通过</option>
+                    <option value="approved">已启用</option>
                     <option value="pending">待审核</option>
+                    <option value="disabled">已暂停</option>
                     <option value="rejected">已驳回</option>
                 </select>
             </div>
@@ -885,10 +982,13 @@
 
         let allUsers = [];
         let allLogs = [];
+        let allOps = [];
 
         // 用户管理状态
         let userSearchKey = '';
         let statusFilterVal = 'all';
+        let bindFilterVal = 'all';   // A3 绑定筛选
+        let sortByVal = 'last';      // A4 排序方式：last=最近登录 / created=注册时间
         let editingUserId = null; // null = 新增模式
         let currentAdmin = null;
 
@@ -977,7 +1077,7 @@
             BAD_PASSWORD: '密码错误',
             NO_USER: '账号不存在',
             PENDING: '待审核',
-            DISABLED: '已停用',
+            DISABLED: '已暂停',
             NEED_APK: '非App登录',
             DEVICE_MISMATCH: '设备不符',
             TOTP_FAIL: '动态码错误',
@@ -994,10 +1094,56 @@
             return LOG_REASON_TEXT[r] || r;
         }
 
+        // DISABLED 统一叫「已暂停」
+
+        // ===== A8 状态中文映射（全站统一：待审核 / 已启用 / 已暂停 / 已驳回） =====
+        const STATUS_TEXT = { pending: '待审核', approved: '已启用', disabled: '已暂停', rejected: '已驳回' };
+
+        function statusText(status) {
+            return STATUS_TEXT[status] || status || '—';
+        }
+
+        function statusClassOf(status) {
+            if (status === 'approved') return 'status-approved';
+            if (status === 'disabled') return 'status-disabled';
+            if (status === 'rejected') return 'status-rejected';
+            return 'status-pending';
+        }
+
+        // ===== A6 操作记录动作中文映射 =====
+        const OP_ACTION_TEXT = {
+            auto_disabled_inactive: '自动暂停',
+            admin_set_status: '暂停/恢复账号',
+            gen_invite: '生成邀请码',
+            reset_bind: '重置绑定',
+            create_user: '新增用户',
+            edit_user: '修改用户',
+            delete_user: '删除用户',
+            approve_user: '审核通过'
+        };
+
+        function opActionText(action) {
+            return OP_ACTION_TEXT[action] || action || '—';
+        }
+
+        // ===== A7 管理员动作落库（不影响主流程：不 await、失败静默） =====
+        function logAdminOp(pAction, pTarget, pDetail) {
+            try {
+                supabase.rpc('admin_log_op', {
+                    p_token: ADMIN_TOKEN,
+                    p_actor: (currentAdmin && currentAdmin.username) || '',
+                    p_action: pAction,
+                    p_target: pTarget ?? null,
+                    p_detail: pDetail ?? null
+                }).then(() => { }).catch(() => { });
+            } catch (e) { /* 记录失败不影响主流程 */ }
+        }
+
         window.switchTab = function(name) {
             document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + name));
             if (name === 'invites') loadInvites();
+            if (name === 'ops') loadOpsLogs();
         };
 
         function renderPending(users) {
@@ -1033,23 +1179,40 @@
             document.getElementById('totalUsers').textContent = total;
 
             const el = document.getElementById('userList');
-            let sorted = [...users].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+            let sorted = [...users];
+            // A4 排序：最近登录（空值自然排最后）/ 注册时间，都是倒序
+            if (sortByVal === 'created') {
+                sorted.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+            } else {
+                sorted.sort((a, b) => String(b.last_login || '').localeCompare(String(a.last_login || '')));
+            }
             if (statusFilterVal !== 'all') sorted = sorted.filter(u => u.status === statusFilterVal);
+            // A3 绑定筛选：无绑定行按 none 处理
+            if (bindFilterVal !== 'all') {
+                sorted = sorted.filter(u => (u.bind_type || 'none') === bindFilterVal);
+            }
+            // A3 搜索：用户名 / 设备码 / 绑定类型中文 / 状态中文 / 备注
             if (userSearchKey) {
-                sorted = sorted.filter(u =>
-                    (u.username || '').toLowerCase().includes(userSearchKey) ||
-                    (u.invited_by || '').toLowerCase().includes(userSearchKey) ||
-                    (u.note || '').toLowerCase().includes(userSearchKey)
-                );
+                sorted = sorted.filter(u => {
+                    const hay = [
+                        u.username || '',
+                        u.device_id || '',
+                        bindTypeText(u.bind_type),
+                        statusText(u.status),
+                        u.note || ''
+                    ].join(' ').toLowerCase();
+                    return hay.includes(userSearchKey);
+                });
             }
             if (sorted.length === 0) {
                 el.innerHTML = `<div class="empty-tip">${total === 0 ? '暂无用户' : '没有符合条件的用户'}</div>`;
                 return;
             }
             el.innerHTML = sorted.map(u => {
-                const statusClass = u.status === 'approved' ? 'status-approved' : u.status === 'rejected' ? 'status-rejected' : 'status-pending';
-                const statusText = u.status === 'approved' ? '已通过' : u.status === 'rejected' ? '已驳回' : '待审核';
+                const statusClass = statusClassOf(u.status);
+                const statusLabel = statusText(u.status);
                 const isSelf = currentAdmin && u.id === currentAdmin.id;
+                const isDisabled = u.status === 'disabled';
                 const roleBadge = u.role === 'admin'
                     ? '<span class="role-badge role-admin">管理员</span>'
                     : '<span class="role-badge role-user">用户</span>';
@@ -1058,7 +1221,7 @@
                     <div class="user-card">
                         <div class="user-card-header">
                             <span class="user-name">${escapeHtml(u.username)}${roleBadge}${selfBadge}</span>
-                            <span class="status-badge ${statusClass}">${statusText}</span>
+                            <span class="status-badge ${statusClass}">${statusLabel}</span>
                         </div>
                         <div class="invite-tag">邀请人：${escapeHtml(u.invited_by || '无')}</div>
                         <div class="user-meta">
@@ -1079,6 +1242,7 @@
                         <div class="user-actions">
                             <button class="btn-manage" onclick="openEditUser('${u.id}')">✏️ 编辑</button>
                             <button class="btn-manage" onclick="resetBind('${u.id}')">重置绑定</button>
+                            <button class="btn-status${isDisabled ? ' resume' : ''}" onclick="setUserStatus('${u.id}')">${isDisabled ? '恢复' : '暂停'}</button>
                             <button class="btn-delete" onclick="deleteUser('${u.id}')">删除</button>
                         </div>
                     </div>
@@ -1190,12 +1354,61 @@
                 if (res && res.error) { showToast(res.error, 'error'); return; }
                 if (res && res.ok) {
                     showToast('已重置，该用户下次登录需重新绑定', 'success');
+                    logAdminOp('reset_bind', u.username, '重置设备绑定');
                     await loadUsers();
                 } else {
                     showToast('重置失败', 'error');
                 }
             } catch (e) {
                 showToast('重置失败：' + e.message, 'error');
+            }
+        }
+
+        // ===== A8 暂停 / 恢复账号 =====
+        let pendingStatusUser = null;
+        let pendingStatusValue = 'disabled';
+
+        window.setUserStatus = function(uid) {
+            const u = allUsers.find(x => x.id === uid);
+            if (!u) return;
+            if (currentAdmin && uid === currentAdmin.id) {
+                showToast('不能暂停自己的账号', 'error');
+                return;
+            }
+            const toDisabled = u.status !== 'disabled';
+            pendingStatusUser = u;
+            pendingStatusValue = toDisabled ? 'disabled' : 'approved';
+            document.getElementById('confirmTitle').textContent = toDisabled ? '暂停账号' : '恢复账号';
+            document.getElementById('confirmMsg').textContent = toDisabled
+                ? '确认暂停 ' + u.username + ' ？暂停后该账号无法登录，可随时恢复。'
+                : '确认恢复 ' + u.username + ' ？恢复后该账号可以正常登录。';
+            confirmAction = doSetStatus;
+            document.getElementById('confirmOverlay').classList.add('show');
+        };
+
+        async function doSetStatus() {
+            const u = pendingStatusUser;
+            if (!u) return;
+            const target = pendingStatusValue;
+            try {
+                const { data, error } = await supabase.rpc('admin_set_status', {
+                    p_token: ADMIN_TOKEN,
+                    p_username: u.username,
+                    p_status: target,
+                    p_actor: (currentAdmin && currentAdmin.username) || ''
+                });
+                const res = asJson(data);
+                if (error) { showToast('操作失败：' + error.message, 'error'); return; }
+                if (res && res.error) { showToast(res.error, 'error'); return; }
+                if (res && res.ok) {
+                    showToast(target === 'disabled' ? '已暂停' : '已恢复', 'success');
+                    logAdminOp('admin_set_status', u.username, target);
+                    await loadUsers();
+                } else {
+                    showToast('操作失败', 'error');
+                }
+            } catch (e) {
+                showToast('操作失败：' + e.message, 'error');
             }
         }
 
@@ -1206,7 +1419,9 @@
 
         window.genInvites = async function() {
             const btn = document.getElementById('genInviteBtn');
-            const count = parseInt(document.getElementById('inviteCount').value, 10) || 1;
+            let count = parseInt(document.getElementById('inviteCount').value, 10) || 1;
+            if (count > 20) count = 20;   // A1 夹紧到 1~20
+            if (count < 1) count = 1;
             const note = document.getElementById('inviteNote').value.trim();
             btn.disabled = true;
             btn.textContent = '生成中...';
@@ -1222,6 +1437,7 @@
                 if (res && res.ok) {
                     renderGeneratedInvites(res.codes || []);
                     showToast('已生成 ' + (res.codes || []).length + ' 个邀请码', 'success');
+                    logAdminOp('gen_invite', null, '生成 ' + (res.codes || []).length + ' 个');
                     await loadInvites();
                 } else {
                     showToast('生成失败', 'error');
@@ -1234,8 +1450,14 @@
             }
         };
 
+        // A2 本次生成的码，供「复制全部码」使用
+        let lastGenCodes = [];
+
         function renderGeneratedInvites(codes) {
             const el = document.getElementById('inviteGenList');
+            lastGenCodes = codes || [];
+            const actions = document.getElementById('inviteGenActions');
+            if (actions) actions.style.display = lastGenCodes.length ? 'block' : 'none';
             if (!codes.length) { el.innerHTML = ''; return; }
             el.innerHTML = codes.map(code => `
                 <div class="invite-gen-item">
@@ -1244,6 +1466,32 @@
                 </div>
             `).join('');
         }
+
+        // A2 一键复制本次生成的全部邀请码
+        window.copyAllInvites = function() {
+            const codes = lastGenCodes || [];
+            if (!codes.length) { showToast('没有可复制的邀请码', 'error'); return; }
+            const all = codes.join('\n');
+            const okToast = () => showToast('已复制 ' + codes.length + ' 个邀请码', 'success');
+            const fallback = () => {
+                const ta = document.createElement('textarea');
+                ta.value = all;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                let ok = false;
+                try { ok = document.execCommand('copy'); } catch (e) { }
+                document.body.removeChild(ta);
+                if (ok) okToast();
+                else showToast('复制失败，请手动复制', 'error');
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(all).then(okToast).catch(() => fallback());
+            } else {
+                fallback();
+            }
+        };
 
         window.copyInviteCode = function(code) {
             const fallback = () => {
@@ -1303,10 +1551,59 @@
             `).join('');
         }
 
+        // ===== A6 操作记录页签 =====
+        async function loadOpsLogs() {
+            const el = document.getElementById('opList');
+            el.innerHTML = '<div class="empty-tip">加载中...</div>';
+            try {
+                const { data, error } = await supabase.rpc('admin_logs_list', {
+                    p_token: ADMIN_TOKEN,
+                    p_limit: 300
+                });
+                const res = asJson(data);
+                if (error) { showToast('加载操作记录失败：' + error.message, 'error'); return; }
+                if (res && res.error) { showToast(res.error, 'error'); return; }
+                if (!res || !res.ok) { showToast('加载操作记录失败', 'error'); return; }
+                allOps = res.data || [];
+                renderOpsLogs(allOps);
+            } catch (e) {
+                showToast('加载操作记录失败：' + e.message, 'error');
+            }
+        }
+
+        function renderOpsLogs(list) {
+            const el = document.getElementById('opList');
+            if (!list.length) {
+                el.innerHTML = '<div class="empty-tip">暂无操作记录</div>';
+                return;
+            }
+            el.innerHTML = list.map(op => {
+                const time = op.created_at ? new Date(op.created_at).toLocaleString('zh-CN') : '—';
+                return `
+                    <div class="op-item">
+                        <div class="op-top">
+                            <span>
+                                <span class="op-action">${escapeHtml(opActionText(op.action))}</span>
+                                ${op.target ? '<span class="op-target">' + escapeHtml(op.target) + '</span>' : ''}
+                            </span>
+                            <span class="op-time">${escapeHtml(time)}</span>
+                        </div>
+                        <div class="op-fields">
+                            ${op.detail ? '<span>详情：' + escapeHtml(op.detail) + '</span>' : ''}
+                            <span>操作人：${escapeHtml(op.actor || '—')}</span>
+                            <span class="op-ip">${escapeHtml(op.ip || '—')}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         window.approveUser = async function(uid) {
+            const u = allUsers.find(x => x.id === uid);
             const res = await callAdminOp('update', uid, { status: 'approved' });
             if (res) {
-                showToast('已通过', 'success');
+                showToast('已启用', 'success');
+                logAdminOp('approve_user', u ? u.username : null, '审核通过');
                 await loadUsers();
             }
         };
@@ -1333,6 +1630,18 @@
 
         window.onFilterChange = function(v) {
             statusFilterVal = v;
+            renderUsers(allUsers);
+        };
+
+        // A3 绑定筛选
+        window.onBindFilterChange = function(v) {
+            bindFilterVal = v;
+            renderUsers(allUsers);
+        };
+
+        // A4 排序方式
+        window.onSortChange = function(v) {
+            sortByVal = v;
             renderUsers(allUsers);
         };
 
@@ -1380,7 +1689,7 @@
             // 防止把自己锁在门外（自己的状态只允许改为已通过）
             if (!isCreate && currentAdmin && editingUserId === currentAdmin.id) {
                 if (role !== 'admin') { showToast('不能修改自己的管理员角色', 'error'); return; }
-                if (status !== 'approved') { showToast('自己的状态只能设为已通过', 'error'); return; }
+                if (status !== 'approved') { showToast('自己的状态只能设为已启用', 'error'); return; }
             }
 
             saveBtn.disabled = true;
@@ -1403,6 +1712,7 @@
 
                 if (res) {
                     showToast(isCreate ? '用户已创建' : '已保存', 'success');
+                    logAdminOp(isCreate ? 'create_user' : 'edit_user', username, isCreate ? '新增用户' : '修改用户');
                     closeModal();
                     await loadUsers();
                 }
@@ -1424,6 +1734,7 @@
             const res = await callAdminOp('delete', uid, null);
             if (res) {
                 showToast('已删除', 'success');
+                logAdminOp('delete_user', u.username, '删除用户');
                 await loadUsers();
             }
         };
@@ -1453,6 +1764,22 @@
             URL.revokeObjectURL(link.href);
             showToast('导出成功', 'success');
         };
+
+        // ===== A5 页签吸顶：top 取顶部固定栏 .header 的实测高度（含 env 安全区） =====
+        function syncTabsTop() {
+            const hd = document.querySelector('.header');
+            if (!hd) return;
+            const h = hd.offsetHeight || 0;
+            document.documentElement.style.setProperty('--tabs-top', h + 'px');
+        }
+        // mainContent 未登录时是 display:none，header 高度会先测到 0，所以用 ResizeObserver 跟着变
+        if (window.ResizeObserver) {
+            const hd = document.querySelector('.header');
+            if (hd) new ResizeObserver(syncTabsTop).observe(hd);
+        }
+        window.addEventListener('load', syncTabsTop);
+        window.addEventListener('resize', syncTabsTop);
+        window.addEventListener('orientationchange', function() { setTimeout(syncTabsTop, 120); });
 
                 // 初始化 — localStorage 鉴权
         const adminUser = JSON.parse(localStorage.getItem('leave_user') || 'null');
