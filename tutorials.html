@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>使用教程</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+        background: #f5f7fa;
+        min-height: 100vh;
+        color: #2c3138;
+        -webkit-font-smoothing: antialiased;
+        padding-top: calc(52px + env(safe-area-inset-top));
+    }
+
+    /* 顶部返回栏 */
+    .topbar {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 20;
+        height: 52px;
+        padding-top: env(safe-area-inset-top);
+        background: #fff;
+        border-bottom: 1px solid #eef1f6;
+    }
+
+    .topbar-title {
+        height: 52px;
+        line-height: 52px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .back {
+        position: absolute;
+        left: 10px;
+        bottom: 0;
+        height: 52px;
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding-right: 10px;
+        color: #5a9cf5;
+        font-size: 14px;
+        text-decoration: none;
+    }
+
+    .back svg { width: 20px; height: 20px; }
+
+    .container {
+        width: 100%;
+        max-width: 414px;
+        margin: 0 auto;
+        padding: 14px 16px calc(24px + env(safe-area-inset-bottom));
+    }
+
+    /* 分类选项卡 */
+    .tabs {
+        display: flex;
+        gap: 6px;
+        background: #fff;
+        border-radius: 14px;
+        padding: 5px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.05);
+        margin-bottom: 14px;
+    }
+
+    .tab {
+        flex: 1;
+        height: 38px;
+        padding: 0 4px;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        font-family: inherit;
+        font-size: 12.5px;
+        color: #909399;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background .2s, color .2s;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .tab.active {
+        background: #eaf2fe;
+        color: #5a9cf5;
+        font-weight: 600;
+    }
+
+    /* 图组 */
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeIn .25s ease; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slider {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+        padding: 10px;
+        overflow: hidden;
+    }
+
+    .track {
+        display: flex;
+        align-items: flex-start;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 12px;
+        scrollbar-width: none;
+    }
+
+    .track::-webkit-scrollbar { display: none; }
+
+    .slide {
+        flex: 0 0 100%;
+        width: 100%;
+        scroll-snap-align: center;
+    }
+
+    .slide img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        background: #f5f7fa;
+    }
+
+    /* 页码 + 圆点 */
+    .indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .page-num {
+        min-width: 46px;
+        text-align: center;
+        font-size: 13px;
+        color: #909399;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .dots { display: flex; align-items: center; }
+
+    .dot {
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border: none;
+        background: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .dot::after {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #dfe4ec;
+        transition: background .2s, width .2s, border-radius .2s;
+    }
+
+    .dot.active::after {
+        width: 14px;
+        border-radius: 3px;
+        background: #5a9cf5;
+    }
+
+    .footer {
+        margin-top: 24px;
+        text-align: center;
+        font-size: 12px;
+        color: #c0c4cc;
+        line-height: 1.7;
+    }
+</style>
+</head>
+<body>
+    <div class="topbar">
+        <a class="back" href="login.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>返回登录页</span>
+        </a>
+        <div class="topbar-title">使用教程</div>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button type="button" class="tab active" data-tab="ios">iOS 动态码绑定</button>
+            <button type="button" class="tab" data-tab="main">主体部分</button>
+            <button type="button" class="tab" data-tab="avp">关闭空白通行证</button>
+        </div>
+
+        <div class="panel active" id="panel-ios">
+            <div class="slider">
+                <div class="track" id="track-ios">
+                    <div class="slide"><img src="tutorials/ios-1.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/ios-2.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/ios-3.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/ios-4.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/ios-5.jpg" alt=""></div>
+                </div>
+            </div>
+            <div class="indicator">
+                <span class="page-num" id="page-ios">1 / 5</span>
+                <div class="dots" id="dots-ios"></div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-main">
+            <div class="slider">
+                <div class="track" id="track-main">
+                    <div class="slide"><img src="tutorials/main-1.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/main-2.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/main-3.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/main-4.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/main-5.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/main-6.jpg" alt=""></div>
+                </div>
+            </div>
+            <div class="indicator">
+                <span class="page-num" id="page-main">1 / 6</span>
+                <div class="dots" id="dots-main"></div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-avp">
+            <div class="slider">
+                <div class="track" id="track-avp">
+                    <div class="slide"><img src="tutorials/avp-1.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/avp-2.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/avp-3.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/avp-4.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/avp-5.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/avp-6.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/avp-7.jpg" alt=""></div>
+                    <div class="slide"><img src="tutorials/avp-8.jpg" alt=""></div>
+                </div>
+            </div>
+            <div class="indicator">
+                <span class="page-num" id="page-avp">1 / 8</span>
+                <div class="dots" id="dots-avp"></div>
+            </div>
+        </div>
+
+        <div class="footer">仅供学习交流，请勿用于商业用途</div>
+    </div>
+
+    <script>
+    (function () {
+        var updaters = {};
+
+        function initSlider(id) {
+            var track = document.getElementById('track-' + id);
+            var dotsBox = document.getElementById('dots-' + id);
+            var pageEl = document.getElementById('page-' + id);
+            var n = track.querySelectorAll('.slide').length;
+
+            for (var i = 0; i < n; i++) {
+                var d = document.createElement('button');
+                d.type = 'button';
+                d.className = 'dot';
+                d.setAttribute('aria-label', '第 ' + (i + 1) + ' 张');
+                d.dataset.i = i;
+                d.addEventListener('click', function () {
+                    var idx = parseInt(this.dataset.i, 10) || 0;
+                    var left = idx * track.clientWidth;
+                    if (track.scrollTo) {
+                        track.scrollTo({ left: left, behavior: 'smooth' });
+                    } else {
+                        track.scrollLeft = left;
+                    }
+                });
+                dotsBox.appendChild(d);
+            }
+
+            function update() {
+                var w = track.clientWidth || 1;
+                var idx = Math.round(track.scrollLeft / w);
+                if (idx < 0) idx = 0;
+                if (idx > n - 1) idx = n - 1;
+                pageEl.textContent = (idx + 1) + ' / ' + n;
+                var dots = dotsBox.children;
+                for (var j = 0; j < dots.length; j++) {
+                    if (j === idx) { dots[j].classList.add('active'); }
+                    else { dots[j].classList.remove('active'); }
+                }
+            }
+
+            var timer = null;
+            track.addEventListener('scroll', function () {
+                clearTimeout(timer);
+                timer = setTimeout(update, 60);
+            }, { passive: true });
+
+            updaters[id] = update;
+            update();
+        }
+
+        ['ios', 'main', 'avp'].forEach(initSlider);
+
+        var tabs = document.querySelectorAll('.tab');
+        for (var t = 0; t < tabs.length; t++) {
+            tabs[t].addEventListener('click', function () {
+                var id = this.dataset.tab;
+                for (var k = 0; k < tabs.length; k++) {
+                    tabs[k].classList.remove('active');
+                }
+                this.classList.add('active');
+                var panels = document.querySelectorAll('.panel');
+                for (var p = 0; p < panels.length; p++) {
+                    panels[p].classList.remove('active');
+                }
+                document.getElementById('panel-' + id).classList.add('active');
+                if (updaters[id]) updaters[id]();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        window.addEventListener('resize', function () {
+            for (var k in updaters) {
+                if (updaters.hasOwnProperty(k)) updaters[k]();
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

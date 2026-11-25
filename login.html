@@ -4,6 +4,40 @@
     <script>
     (function(){var ua=navigator.userAgent||'';if(!/android/i.test(ua))return;if(/HtmlToApkShell/i.test(ua))return;var u=null;try{u=JSON.parse(localStorage.getItem('leave_user')||'null');}catch(e){}if(u&&u.role==='admin')return;location.replace('need-apk.html');})();
     </script>
+    <script>
+    // 安卓 App 壳旧版本拦截：只有 UA 含 HtmlToApkShell 时才生效，地址栏 ?appver= 与 version.json 不一致（或没传）就整屏拦住
+    (function(){
+      var ua = navigator.userAgent || '';
+      if (!/HtmlToApkShell/i.test(ua)) return;            // 只对安卓 App 生效
+      var m = location.search.match(/[?&]appver=([^&]*)/);
+      var appver = m ? decodeURIComponent(m[1]) : '';
+
+      function show(v, appver){
+        var gate = document.getElementById('verGate');
+        if (!gate) return false;                          // 遮罩还没解析出来，交给 DOMContentLoaded 再试
+        var url = v.apk_url || 'https://3245454757.github.io/qingjia-download/qingjia.apk';
+        document.getElementById('verGateText').textContent =
+          '当前版本 ' + (appver || '未知（旧版）') + '，最新版本 ' + v.apk_version + '。请更新后继续使用。';
+        var btn = document.getElementById('verGateBtn'); btn.href = url;
+        document.getElementById('verGateLink').textContent = url;
+        gate.style.display = 'block';
+        // 遮罩期间禁止操作下面的页面
+        document.body.style.overflow = 'hidden';
+        return true;
+      }
+
+      fetch('version.json?t=' + Date.now(), {cache:'no-store'})
+        .then(function(r){ return r.json(); })
+        .then(function(v){
+          if (!v || !v.apk_version) return;               // 配置缺失，放行
+          if (appver === v.apk_version) return;           // 版本一致，放行
+          if (!show(v, appver)) {
+            document.addEventListener('DOMContentLoaded', function(){ show(v, appver); });
+          }
+        })
+        .catch(function(){});                             // 拿不到 version.json 就不拦，避免误伤
+    })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>登录</title>
@@ -262,6 +296,10 @@
                     没有账号？<a href="register.html">去注册</a>
                     <br>
                     <a href="admin.html" class="sub">进入后台管理</a>
+                    <br>
+                    📖 <a href="tutorials.html" class="sub">使用教程</a>
+                    <br>
+                    <a href="mailto:3245454757zhan.zk@gmail.com" class="sub">遇到问题请联系：3245454757zhan.zk@gmail.com</a>
                 </div>
             </div>
 
@@ -277,11 +315,173 @@
                     <input type="text" id="bindCode" inputmode="numeric" maxlength="6" placeholder="请输入 6 位动态码" autocomplete="one-time-code">
                 </div>
                 <button class="login-btn" id="bindBtn" onclick="handleBind()">确认绑定</button>
+                <div style="text-align:center; margin-top:12px;">
+                    <a href="tutorials.html" style="color:#909399; font-size:12px; text-decoration:none;">不会操作？点这里看图文教程</a>
+                </div>
             </div>
         </div>
     </div>
 
+    <style>
+        /* 首次进入三连弹窗 */
+        .qj-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, .45);
+        }
+
+        .qj-modal.active { display: flex; }
+
+        .qj-modal-card {
+            width: 100%;
+            max-width: 414px;
+            max-height: 80vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #fff;
+            border-radius: 16px;
+            padding: 22px;
+            animation: qjModalIn .3s ease;
+        }
+
+        @keyframes qjModalIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .qj-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3138;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .qj-modal-body {
+            font-size: 14px;
+            color: #606266;
+            line-height: 1.8;
+        }
+
+        .qj-modal-btn {
+            width: 100%;
+            height: 46px;
+            margin-top: 20px;
+            background: #5a9cf5;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .qj-modal-btn:hover { background: #4a8ce8; }
+        .qj-modal-btn:active { background: #4a8ce8; }
+
+        .qj-pay {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .qj-pay-item { flex: 1; min-width: 0; text-align: center; }
+
+        .qj-pay-item .lbl {
+            font-size: 13px;
+            color: #606266;
+            margin-bottom: 6px;
+        }
+
+        .qj-pay-item img {
+            display: block;
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid #eef1f6;
+        }
+    </style>
+
+    <div class="qj-modal" id="qjNotice">
+        <div class="qj-modal-card">
+            <div id="qjS1">
+                <div class="qj-modal-title">关于本站</div>
+                <div class="qj-modal-body">这是一个复刻演示性质的请假系统页面，用于还原某高校请假模块的界面与交互，力求做到逼真还原。纯前端页面配云端账号，安卓 App 与 iOS 企微网页均可登录，方便体验完整流程。</div>
+            </div>
+            <div id="qjS2" style="display:none">
+                <div class="qj-modal-title">免责声明</div>
+                <div class="qj-modal-body">本系统仅供学习演示与技术交流使用，禁止任何商业用途与传播。正式请假请通过学校官方渠道办理，本系统数据不具任何效力。界面与设计版权归原作者所有，如有侵权请联系删除：3245454757zhan.zk@gmail.com</div>
+            </div>
+            <div id="qjS3" style="display:none">
+                <div class="qj-modal-title">制作不易</div>
+                <div class="qj-modal-body">这阵子熬了不少夜，如果觉得还行，欢迎赞助一点服务器与维护费用，感谢各位兄弟姐妹。</div>
+                <div class="qj-pay">
+                    <div class="qj-pay-item">
+                        <div class="lbl">微信</div>
+                        <img src="donate/wechat.jpg" alt="微信捐赠码">
+                    </div>
+                    <div class="qj-pay-item">
+                        <div class="lbl">支付宝</div>
+                        <img src="donate/alipay.jpg" alt="支付宝捐赠码">
+                    </div>
+                </div>
+            </div>
+            <button class="qj-modal-btn" id="qjBtn" onclick="qjNoticeNext()">下一步</button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        var KEY = 'qjNoticeTs';
+        var saved = null;
+        try { saved = parseInt(localStorage.getItem(KEY), 10); } catch (e) {}
+        if (!isNaN(saved) && (Date.now() - saved) <= 3600000) { return; }
+
+        var step = 1;
+        var wrap = document.getElementById('qjNotice');
+        var btn = document.getElementById('qjBtn');
+
+        function render() {
+            document.getElementById('qjS1').style.display = (step === 1) ? '' : 'none';
+            document.getElementById('qjS2').style.display = (step === 2) ? '' : 'none';
+            document.getElementById('qjS3').style.display = (step === 3) ? '' : 'none';
+            btn.textContent = (step === 3) ? '我知道了' : '下一步';
+            var card = wrap.querySelector('.qj-modal-card');
+            if (card) card.scrollTop = 0;
+        }
+
+        window.qjNoticeNext = function () {
+            if (step < 3) {
+                step++;
+                render();
+            } else {
+                try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
+                wrap.classList.remove('active');
+            }
+        };
+
+        render();
+        wrap.classList.add('active');
+    })();
+    </script>
+
     <div class="toast" id="toast"></div>
+
+    <!-- 安卓 App 壳旧版本强制更新遮罩（默认隐藏，无关闭按钮） -->
+    <div id="verGate" style="display:none;position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.55);padding:24px;box-sizing:border-box;">
+        <div style="max-width:380px;margin:12vh auto 0;background:#fff;border-radius:16px;padding:22px;text-align:center;">
+            <div style="font-size:18px;font-weight:600;color:#333;">请更新后使用</div>
+            <div id="verGateText" style="font-size:14px;color:#666;line-height:1.7;margin:12px 0 18px;"></div>
+            <a id="verGateBtn" href="https://3245454757.github.io/qingjia-download/qingjia.apk" target="_blank" rel="noopener"
+               style="display:block;height:46px;line-height:46px;background:#5a9cf5;color:#fff;border-radius:10px;text-decoration:none;font-size:16px;">立即更新</a>
+            <div style="font-size:12px;color:#999;margin-top:12px;line-height:1.6;">点按钮没反应的话，把下面链接复制到手机浏览器打开：<br><span id="verGateLink" style="color:#5a9cf5;word-break:break-all;"></span></div>
+        </div>
+    </div>
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
